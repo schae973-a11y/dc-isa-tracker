@@ -116,7 +116,7 @@
         const dcGasUrl = "https://script.google.com/macros/s/AKfycby8XB0dOwk5Tw7yUmQMiv0RfGOeYOjD_1uUcTA-rUYdc4YDoNME46GEK4ZhaxZ0b8hO/exec";
         const isaGasUrl = "https://script.google.com/macros/s/AKfycbxW7zkcTspkQKcUFJrzydqh1gbLaUmQFUraHXeSXke3TC-y4xmjXoZ2F0g8Bq743QTA/exec";
 
-        // PIN 050426 의 해시값
+        // PIN 의 해시값
         const targetToken = "p_e2417c74";
 
         let inputPin = "";
@@ -126,9 +126,27 @@
         let isAscending = false;
 
         window.onload = function() {
+            // URL에 해시(#isa)가 있는지 먼저 확인하고 기본 탭 설정
+            const hash = window.location.hash.replace('#', '');
+            if (hash === 'isa' || hash === 'dc') {
+                currentTab = hash;
+            }
+
             const savedToken = localStorage.getItem('dashboard_auth_token');
             if (savedToken === targetToken) {
                 unlockDashboard();
+            }
+        };
+
+        // 브라우저 앞으로가기/뒤로가기나 URL 직접 변경 시 탭 전환 감지
+        window.onhashchange = function() {
+            const hash = window.location.hash.replace('#', '');
+            if ((hash === 'isa' || hash === 'dc') && hash !== currentTab) {
+                const mainDashboard = document.getElementById('main-dashboard');
+                // 인증이 완료되어 메인 화면이 보이는 상태일 때만 탭 전환 실행
+                if (mainDashboard && !mainDashboard.classList.contains('hidden')) {
+                    switchTab(hash, false);
+                }
             }
         };
 
@@ -189,20 +207,38 @@
         function unlockDashboard() {
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('main-dashboard').classList.remove('hidden');
+            
+            // 인증 해제 후, 주소창의 해시 상태에 맞게 UI를 새로고침 처리
+            const currentHash = window.location.hash.replace('#', '');
+            if (currentHash === 'isa' || currentHash === 'dc') {
+                currentTab = currentHash;
+            }
+            
+            // 동기화를 위해 초기화 함수 직접 호출형태로 반영
+            document.getElementById('tab-dc').classList.toggle('active', currentTab === 'dc');
+            document.getElementById('tab-isa').classList.toggle('active', currentTab === 'isa');
+            document.getElementById('dashboard-title').innerText = currentTab === 'dc' ? 'DC 연금 계좌' : 'ISA 만능 계좌';
+            
             fetchCurrentTabData();
         }
 
         function formatCurrency(val) { return '₩' + Math.round(Number(val)).toLocaleString('ko-KR'); }
         function getPercentDetails(val) {
             const num = parseFloat(val) || 0;
-            // GAS에서 이미 % 단위로 변환 완료된 값이 오므로 추가 변환 없이 그대로 사용
             const sign = num > 0 ? '+' : num < 0 ? '-' : '';
             return { num: num, sign: sign };
         }
 
-        function switchTab(tabType) {
-            if (currentTab === tabType) return;
+        // updateHash 파라미터를 추가하여 무한 루프 방지
+        function switchTab(tabType, updateHash = true) {
+            if (currentTab === tabType && !updateHash) return;
             currentTab = tabType;
+            
+            // URL 해시 업데이트
+            if (updateHash) {
+                window.location.hash = tabType;
+            }
+
             document.getElementById('tab-dc').classList.toggle('active', tabType === 'dc');
             document.getElementById('tab-isa').classList.toggle('active', tabType === 'isa');
             document.getElementById('dashboard-title').innerText = tabType === 'dc' ? 'DC 연금 계좌' : 'ISA 만능 계좌';
