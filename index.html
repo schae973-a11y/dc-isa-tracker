@@ -138,83 +138,78 @@
         }
 
         function renderData(data) {
-            document.getElementById('account-title').innerText = currentTab === 'dc' ? 'DC RETIREMENT PENSION' : 'ISA INVESTMENT ACCOUNT';
-            document.getElementById('total-eval').innerText = formatCurrency(data.summary.totalEval);
-            
-            // UI 개선: 상단 요약 변동 영역에 명확한 기호 배정 및 부호 포맷팅 적용
-            const yesterday = data.summary.totalEval_yesterday || data.summary.totalEval;
-            const diffAmt = data.summary.totalEval - yesterday;
-            // const diffRate = yesterday > 0 ? (diffAmt / yesterday) * 100 : 0;
-            // 변경: 분모가 0이거나 NaN이 되는 구조를 완벽 차단
-            const diffRate = (yesterday > 0 && !isNaN(yesterday)) ? (diffAmt / yesterday) * 100 : 0;
-       
-            
-            let changeEl = document.getElementById('day-change');
-            if (diffAmt > 0) {
-                changeEl.className = "text-[13px] font-bold text-rose-400 tabular-nums flex items-center gap-1";
-                changeEl.innerHTML = `▲ ${Math.abs(diffAmt).toLocaleString()}원 <span class="bg-rose-500/20 px-1.5 py-0.5 rounded text-[11px] font-black">+${diffRate.toFixed(2)}%</span>`;
-            } else if (diffAmt < 0) {
-                changeEl.className = "text-[13px] font-bold text-blue-400 tabular-nums flex items-center gap-1";
-                changeEl.innerHTML = `▼ ${Math.abs(diffAmt).toLocaleString()}원 <span class="bg-blue-500/20 px-1.5 py-0.5 rounded text-[11px] font-black">${diffRate.toFixed(2)}%</span>`;
-            } else {
-                changeEl.className = "text-[13px] font-bold text-slate-400 tabular-nums flex items-center gap-1";
-                changeEl.innerHTML = `─ 0원 <span class="bg-slate-500/20 px-1.5 py-0.5 rounded text-[11px] font-black">0.00%</span>`;
-            }
+    document.getElementById('account-title').innerText = currentTab === 'dc' ? 'DC RETIREMENT PENSION' : 'ISA INVESTMENT ACCOUNT';
+    document.getElementById('total-eval').innerText = formatCurrency(data.summary.totalEval);
+    
+    // 백엔드 결합 연산 바인딩으로 데이터 동기화 안정화 보장
+    const diffAmt = data.summary.diffAmt || 0;
+    const diffRate = data.summary.diffRate || 0;
+    
+    let changeEl = document.getElementById('day-change');
+    if (diffAmt > 0) {
+        changeEl.className = "text-[13px] font-bold text-rose-400 tabular-nums flex items-center gap-1";
+        changeEl.innerHTML = `▲ ${Math.abs(diffAmt).toLocaleString()}원 <span class="bg-rose-500/20 px-1.5 py-0.5 rounded text-[11px] font-black">+${diffRate.toFixed(2)}%</span>`;
+    } else if (diffAmt < 0) {
+        changeEl.className = "text-[13px] font-bold text-blue-400 tabular-nums flex items-center gap-1";
+        changeEl.innerHTML = `▼ ${Math.abs(diffAmt).toLocaleString()}원 <span class="bg-blue-500/20 px-1.5 py-0.5 rounded text-[11px] font-black">${diffRate.toFixed(2)}%</span>`;
+    } else {
+        changeEl.className = "text-[13px] font-bold text-slate-400 tabular-nums flex items-center gap-1";
+        changeEl.innerHTML = `─ 0원 <span class="bg-slate-500/20 px-1.5 py-0.5 rounded text-[11px] font-black">0.00%</span>`;
+    }
 
-            document.getElementById('total-profit').innerText = formatCurrency(data.summary.totalProfitAmt);
-            document.getElementById('total-profit').className = `text-[13px] font-bold tabular-nums ${getRateColor(data.summary.totalProfitAmt)}`;
-            
-            const now = new Date();
-            document.getElementById('last-update').innerText = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+    document.getElementById('total-profit').innerText = formatCurrency(data.summary.totalProfitAmt);
+    document.getElementById('total-profit').className = `text-[13px] font-bold tabular-nums ${getRateColor(data.summary.totalProfitAmt)}`;
+    
+    const now = new Date();
+    document.getElementById('last-update').innerText = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
 
-            let items = [...data.items];
-            items.sort((a, b) => b[currentSort] - a[currentSort]);
+    let items = [...data.items];
+    items.sort((a, b) => b[currentSort] - a[currentSort]);
 
-            const container = document.getElementById('items-container');
-            container.innerHTML = '';
+    const container = document.getElementById('items-container');
+    container.innerHTML = '';
 
-            items.forEach(item => {
-                const card = document.createElement('div');
-                card.className = "bg-white rounded-xl border border-slate-200/60 shadow-sm overflow-hidden flex flex-col relative transition-all duration-200 active:scale-[0.99]";
-                
-                const isWarning = item.rebalanceStatus !== "정상" && item.rebalanceStatus !== "";
-                const targetWeight = item.targetWeight ? `${(item.targetWeight * 100).toFixed(1)}%` : '미지정';
-                const currentWeight = item.currentWeight ? `${(item.currentWeight * 100).toFixed(1)}%` : '0.0%';
+    items.forEach(item => {
+        const card = document.createElement('div');
+        card.className = "bg-white rounded-xl border border-slate-200/60 shadow-sm overflow-hidden flex flex-col relative transition-all duration-200";
+        
+        const isWarning = item.rebalanceStatus !== "정상" && item.rebalanceStatus !== "";
+        const targetWeight = item.targetWeight ? `${(item.targetWeight * 100).toFixed(1)}%` : '미지정';
+        const currentWeight = item.currentWeight ? `${(item.currentWeight * 100).toFixed(1)}%` : '0.0%';
 
-                // UI 개선: 상단 조정 레이아웃 고정 및 우하단에 목표 비중 가이드 바 노출
-                if (isWarning) {
-                    card.classList.add('border-rose-200', 'bg-rose-50/[0.15]');
-                    card.innerHTML = `
-                        <div class="bg-rose-500 text-white text-[9px] font-black px-3 py-1 flex items-center justify-between tracking-wide shadow-inner">
-                            <span><i class="fa-solid : fa-triangle-exclamation mr-1"></i>비중 조정 필요</span>
-                            <span class="text-[8px] bg-white/20 px-1 rounded">목표: ${targetWeight} / 현재: ${currentWeight}</span>
-                        </div>`;
-                }
-
-                const mainContent = document.createElement('div');
-                mainContent.className = "px-4 py-2.5 flex items-center justify-between gap-3";
-                
-                mainContent.innerHTML = `
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-1.5 mb-0.5">
-                            <span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 border border-slate-200/50 shrink-0 uppercase tracking-tight">${item.category}</span>
-                            <span class="font-bold text-slate-900 text-[13px] truncate">${item.name}</span>
-                        </div>
-                        <div class="text-[11px] text-slate-400 font-semibold tabular-nums">
-                            ${formatCurrency(item.evalAmt)}
-                            ${!isWarning ? `<span class="text-[10px] text-slate-300 ml-1.5 font-normal">(목표 ${targetWeight})</span>` : ''}
-                        </div>
-                    </div>
-                    <div class="text-right tabular-nums shrink-0">
-                        <div class="${getRateColor(item.currentRate)} font-bold text-[13px] tracking-tight">${formatRate(item.currentRate)}</div>
-                        <div class="${getRateColor(item.cumulativeRate)} text-[10px] font-bold opacity-75 mt-0.5">${formatRate(item.cumulativeRate)}</div>
-                    </div>
-                `;
-                
-                card.appendChild(mainContent);
-                container.appendChild(card);
-            });
+        if (isWarning) {
+            card.classList.add('border-rose-200', 'bg-rose-50/[0.15]');
+            card.innerHTML = `
+                <div class="bg-rose-500 text-white text-[9px] font-black px-3 py-1 flex items-center justify-between tracking-wide shadow-inner">
+                    <span><i class="fa-solid : fa-triangle-exclamation mr-1"></i>비중 조정 필요</span>
+                    <span class="text-[8px] bg-white/20 px-1 rounded">목표: ${targetWeight} / 현재: ${currentWeight}</span>
+                </div>`;
         }
+
+        const mainContent = document.createElement('div');
+        mainContent.className = "px-4 py-2.5 flex items-center justify-between gap-3";
+        
+        mainContent.innerHTML = `
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-1.5 mb-0.5">
+                    <span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 border border-slate-200/50 shrink-0 uppercase tracking-tight">${item.category}</span>
+                    <span class="font-bold text-slate-900 text-[13px] truncate">${item.name}</span>
+                </div>
+                <div class="text-[11px] text-slate-400 font-semibold tabular-nums">
+                    ${formatCurrency(item.evalAmt)}
+                    ${!isWarning ? `<span class="text-[10px] text-slate-300 ml-1.5 font-normal">(목표 ${targetWeight})</span>` : ''}
+                </div>
+            </div>
+            <div class="text-right tabular-nums shrink-0">
+                <div class="${getRateColor(item.currentRate)} font-bold text-[13px] tracking-tight">${formatRate(item.currentRate)}</div>
+                <div class="${getRateColor(item.cumulativeRate)} text-[10px] font-bold opacity-75 mt-0.5">${formatRate(item.cumulativeRate)}</div>
+            </div>
+        `;
+        
+        card.appendChild(mainContent);
+        container.appendChild(card);
+    });
+}
 
         window.onload = function() {
             switchTab('dc');
