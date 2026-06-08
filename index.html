@@ -113,11 +113,11 @@
     </div>
 
     <script>
-        // ⚠️ 여기에 구글 앱스 스크립트 웹앱 배포 URL(exec로 끝나는 주소)을 반드시 쌍따옴표 안에 채워주세요!
+        // 상단에 기입해두셨던 진짜 구글 웹앱 URL 주소입니다. (그대로 유지)
         const dcGasUrl = "https://script.google.com/macros/s/AKfycby8XB0dOwk5Tw7yUmQMiv0RfGOeYOjD_1uUcTA-rUYdc4YDoNME46GEK4ZhaxZ0b8hO/exec";
         const isaGasUrl = "https://script.google.com/macros/s/AKfycbxW7zkcTspkQKcUFJrzydqh1gbLaUmQFUraHXeSXke3TC-y4xmjXoZ2F0g8Bq743QTA/exec";
 
-        // 직관적이고 확실한 문정합성 토큰 비교 방식
+        // 암호 핑거프린트
         const targetToken = "p_58e2bf6563c7";
 
         let inputPin = "";
@@ -126,7 +126,6 @@
         let currentSortType = 'default';
         let isAscending = false;
 
-        // 실행 시 자동 로그인 판단
         window.onload = function() {
             const savedToken = localStorage.getItem('dashboard_auth_token');
             if (savedToken === targetToken) {
@@ -147,7 +146,6 @@
             inputPin += num;
             updatePinDots();
             if (inputPin.length === 6) { 
-                // 6자리가 차면 0.1초 딜레이를 주어 마지막 점이 찍히는 UX를 보여준 후 검증
                 setTimeout(verifyPin, 100); 
             }
         }
@@ -195,7 +193,6 @@
             fetchCurrentTabData();
         }
 
-        /* 📊 데이터 파싱 및 정렬 로직 */
         function formatCurrency(val) { return '₩' + Math.round(Number(val)).toLocaleString('ko-KR'); }
         function getPercentDetails(val) {
             const num = parseFloat(val) || 0;
@@ -233,7 +230,6 @@
             
             const targetUrl = currentTab === 'dc' ? dcGasUrl : isaGasUrl;
             
-            // 만약 구글 주소가 세팅되어 있지 않다면 경고 텍스트를 출력하고 데이터 렌더링 스킵
             if (!targetUrl || targetUrl.includes("YOUR_")) {
                 document.getElementById('update-time').innerText = "구글 URL 미설정";
                 if(btn) { btn.innerHTML = '<i class="fa-solid fa-rotate-right text-slate-300 text-[13px]"></i>'; btn.disabled = false; }
@@ -246,7 +242,7 @@
                 allRawData[currentTab] = res;
                 renderData(res);
                 if(btn) { btn.innerHTML = '<i class="fa-solid fa-rotate-right text-slate-300 text-[13px]"></i>'; btn.disabled = false; }
-                delete window[windowName];
+                delete window[callbackName]; // ✨ 오타 수정 완료: callbackName으로 정상 제거
                 document.getElementById(callbackName).remove();
             };
 
