@@ -12,8 +12,8 @@
         .flip5-container { max-width: 360px; margin: 0 auto; min-height: 100vh; }
         .sort-btn { transition: all 0.15s; }
         .sort-btn.active { background-color: #334155 !important; color: #ffffff !important; }
-        .sort-btn.asc::after  { content: ' ↑'; font-size: 10px; }
-        .sort-btn.desc::after { content: ' ↓'; font-size: 10px; }
+        .sort-btn.asc::after  { content: ' ↑'; font-size: 11px; }
+        .sort-btn.desc::after { content: ' ↓'; font-size: 11px; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .spinning { animation: spin 0.8s linear infinite; }
     </style>
@@ -47,21 +47,21 @@
 
             <section class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 rounded-2xl p-4 text-white shadow-xl relative overflow-hidden">
                 <div class="text-[11px] font-bold text-slate-400 tracking-wide mb-1" id="account-title">EVALUATION</div>
-                <div id="total-eval" class="text-3xl font-black tracking-tight tabular-nums mb-3 text-emerald-400">₩ 0</div>
+                <div id="total-eval" class="text-3xl font-black tracking-tight tabular-nums mb-3.5 text-emerald-400">₩ 0</div>
 
                 <div class="grid grid-cols-3 gap-1 pt-3 border-t border-white/10">
                     <div>
                         <div class="text-[10px] font-bold text-slate-400 mb-0.5">당일 변동</div>
-                        <div id="day-change-amt" class="text-[12px] font-black tabular-nums">─ 0원</div>
+                        <div id="day-change-amt" class="text-[13px] font-black tabular-nums">─ 0원</div>
                         <div id="day-change-rate" class="text-[11px] font-bold tabular-nums mt-0.5"></div>
                     </div>
                     <div class="text-center">
                         <div class="text-[10px] font-bold text-slate-400 mb-0.5">누적 수익액</div>
-                        <div id="total-profit-amt" class="text-[12px] font-black tabular-nums">₩ 0</div>
+                        <div id="total-profit-amt" class="text-[13px] font-black tabular-nums mt-0.5">₩ 0</div>
                     </div>
                     <div class="text-right">
                         <div class="text-[10px] font-bold text-slate-400 mb-0.5">누적 수익률</div>
-                        <div id="total-profit-rate" class="text-[12px] font-black tabular-nums">0.00%</div>
+                        <div id="total-profit-rate" class="text-[13px] font-black tabular-nums mt-0.5">0.00%</div>
                     </div>
                 </div>
             </section>
@@ -163,7 +163,7 @@
         function fetchData(onDone) {
             const container = document.getElementById('items-container');
             if (!cachedData) {
-                container.innerHTML = `<div class="text-center text-xs font-bold text-slate-400 py-8"><i class="fa-solid fa-circle-notch animate-spin mr-2"></i>동기화 중...</div>`;
+                container.innerHTML = `<div class="text-center text-xs font-bold text-slate-400 py-8"><i class="fa-solid fa-circle-notch animate-spin mr-2"></i>자산 데이터 동동기화 중...</div>`;
             }
 
             const targetUrl = currentTab === 'dc' ? dcGasUrl : isaGasUrl;
@@ -172,7 +172,7 @@
 
             window.handleGasResponse = function(response) {
                 if (!response || !response.summary) {
-                    container.innerHTML = `<div class="text-center text-xs font-bold text-rose-500 py-8">데이터 규격 에러</div>`;
+                    container.innerHTML = `<div class="text-center text-xs font-bold text-rose-500 py-8">데이터 수신 규격 오류</div>`;
                     if (onDone) onDone();
                     return;
                 }
@@ -199,17 +199,17 @@
             const rateEl   = document.getElementById('day-change-rate');
 
             if (diffAmt > 0) {
-                amtEl.className  = `text-[13px] font-bold tabular-nums text-rose-400`;
+                amtEl.className  = `text-[14px] font-black tabular-nums text-rose-400`;
                 amtEl.innerText  = `▲ ${Math.round(Math.abs(diffAmt)).toLocaleString()}원`;
                 rateEl.className = `text-[11px] font-bold tabular-nums text-rose-400`;
                 rateEl.innerText = `+${diffRate.toFixed(2)}%`;
             } else if (diffAmt < 0) {
-                amtEl.className  = `text-[13px] font-bold tabular-nums text-blue-400`;
+                amtEl.className  = `text-[14px] font-black tabular-nums text-blue-400`;
                 amtEl.innerText  = `▼ ${Math.round(Math.abs(diffAmt)).toLocaleString()}원`;
                 rateEl.className = `text-[11px] font-bold tabular-nums text-blue-400`;
                 rateEl.innerText = `${diffRate.toFixed(2)}%`;
             } else {
-                amtEl.className  = `text-[13px] font-bold tabular-nums text-slate-400`;
+                amtEl.className  = `text-[14px] font-black tabular-nums text-slate-400`;
                 amtEl.innerText  = `─ 0원`;
                 rateEl.className = `text-[11px] font-bold tabular-nums text-slate-500`;
                 rateEl.innerText = `0.00%`;
@@ -220,9 +220,9 @@
             const paEl = document.getElementById('total-profit-amt');
             const prEl = document.getElementById('total-profit-rate');
             paEl.innerText  = fmtWon(profitAmt);
-            paEl.className  = `text-[13px] font-bold tabular-nums ${rateColor(profitAmt)}`;
+            paEl.className  = `text-[14px] font-black tabular-nums ${rateColor(profitAmt)}`;
             prEl.innerText  = fmtRate(profitRate);
-            prEl.className  = `text-[13px] font-bold tabular-nums ${rateColor(profitRate)}`;
+            prEl.className  = `text-[14px] font-black tabular-nums ${rateColor(profitRate)}`;
 
             const now = new Date();
             document.getElementById('last-update').innerText =
@@ -259,57 +259,63 @@
                 const twStr = tw != null ? tw.toFixed(1) + '%' : '미지정';
                 const cwStr = cw != null ? cw.toFixed(1) + '%' : '0.0%';
 
-                const card = document.createElement('div');
-                card.className = `bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col relative transition-all ${isWarning ? 'border-rose-300 bg-rose-50/10' : 'border-slate-200/70'}`;
+                // 게이지 바 퍼센트 계산 연산
+                const progressPercent = tw > 0 ? Math.min(100, (cw / tw) * 100) : 0;
 
-                // 상단 리밸런싱 알림 바 심플화
+                const card = document.createElement('div');
+                card.className = `bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col relative transition-all ${isWarning ? 'border-amber-300 bg-amber-50/[0.1]' : 'border-slate-200/70'}`;
+
+                // 왼쪽 오리지널 감성의 상단 고정 리밸런싱 알림 바
                 if (isWarning) {
                     const banner = document.createElement('div');
-                    banner.className = 'bg-rose-500 text-white text-[10px] font-black px-3 py-1 flex items-center gap-1 tracking-wide shadow-inner';
-                    banner.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> 리밸런싱 조정 필요 종목`;
+                    banner.className = 'bg-amber-400 text-amber-950 text-[10px] font-black px-3 py-1 flex items-center gap-1 tracking-wide shadow-inner';
+                    banner.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Rebalancing Needed`;
                     card.appendChild(banner);
                 }
 
-                // 메인 바디 영역
+                // 메인 컨텐츠 바디 영역
                 const body = document.createElement('div');
-                body.className = 'px-3 py-3 flex items-center justify-between gap-2.5';
+                body.className = 'px-3.5 py-3 flex items-center justify-between gap-3';
                 
-                // [배지 너비 w-[54px]로 강정 고정하여 균일화 배치] + [텍스트 크기 일괄 확장]
+                // [배지 너비 w-[58px] 상시 고정 정렬] + [폰트 전반적 크기 상승]
                 body.innerHTML = `
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-2 mb-1.5">
-                            <span class="text-[10px] font-black w-[54px] py-0.5 rounded text-center shrink-0 border uppercase ${
-                                isWarning ? 'bg-rose-100 text-rose-600 border-rose-200' : 'bg-slate-100 text-slate-500 border-slate-200'
+                            <span class="text-[9px] font-bold w-[58px] py-0.5 rounded text-center shrink-0 border uppercase tracking-tighter ${
+                                isWarning ? 'bg-amber-100 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200'
                             }">${item.category}</span>
-                            <span class="font-bold text-slate-900 text-[14px] truncate leading-tight">${item.name}</span>
+                            <span class="font-black text-slate-900 text-[15px] truncate leading-tight">${item.name}</span>
                         </div>
-                        <div class="text-[12px] text-slate-500 font-bold tabular-nums pl-1">
+                        <div class="text-[13px] text-slate-500 font-bold tabular-nums pl-1">
                             ${fmtWon(item.evalAmt)}
                         </div>
                     </div>
                     <div class="text-right tabular-nums shrink-0">
-                        <div class="${rateColorCard(item.currentRate)} font-black text-[14px] tracking-tight">${fmtRate(item.currentRate)}</div>
-                        <div class="${rateColorCard(item.cumulativeRate)} text-[11px] font-bold opacity-85 mt-0.5">${fmtRate(item.cumulativeRate)}</div>
+                        <div class="${rateColorCard(item.currentRate)} font-black text-[15px] tracking-tight">${fmtRate(item.currentRate)}</div>
+                        <div class="${rateColorCard(item.cumulativeRate)} text-[11px] font-bold opacity-80 mt-0.5">${fmtRate(item.cumulativeRate)}</div>
                     </div>`;
                 card.appendChild(body);
 
-                // 하단 비중 영역: 눈에 띄게 큰 글씨 하단 바 형태로 독립 배치
-                const weightBar = document.createElement('div');
-                weightBar.className = `mx-3 mb-2.5 px-2.5 py-1.5 rounded-lg flex items-center justify-between text-[12px] font-bold ${
-                    isWarning ? 'bg-amber-50 text-amber-900 border border-amber-200/70' : 'bg-slate-50 text-slate-600 border border-slate-100'
-                }`;
-                weightBar.innerHTML = `
-                    <div class="flex items-center gap-1">
-                        <span class="text-slate-400 text-[11px]">목표 비중</span>
-                        <span class="font-black text-slate-800">${twStr}</span>
+                // 하단 비중 가이드 보드 + 시각화 게이지 바 (Grok 아이디어 차용 융합)
+                const weightSection = document.createElement('div');
+                weightSection.className = "px-3.5 pb-3 flex flex-col gap-1.5";
+                
+                weightSection.innerHTML = `
+                    <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/20">
+                        <div class="h-full rounded-full ${isWarning ? 'bg-amber-500' : 'bg-emerald-500'}" style="width: ${progressPercent}%"></div>
                     </div>
-                    <div class="h-3 w-[1px] bg-slate-200"></div>
-                    <div class="flex items-center gap-1">
-                        <span class="text-slate-400 text-[11px]">현재 비중</span>
-                        <span class="font-black ${isWarning ? 'text-rose-600' : 'text-slate-800'}">${cwStr}</span>
+                    <div class="flex items-center justify-between text-[12px] font-bold text-slate-600 px-0.5">
+                        <div class="flex items-center gap-1">
+                            <span class="text-slate-400 font-medium text-[11px]">목표</span>
+                            <span class="text-slate-800 font-black">${twStr}</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <span class="text-slate-400 font-medium text-[11px]">현재</span>
+                            <span class="font-black ${isWarning ? 'text-amber-600 font-black' : 'text-slate-800'}">${cwStr}</span>
+                        </div>
                     </div>
                 `;
-                card.appendChild(weightBar);
+                card.appendChild(weightSection);
 
                 container.appendChild(card);
             });
