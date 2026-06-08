@@ -7,24 +7,25 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        html, body { background-color: #f8fafc; margin: 0; font-family: -apple-system, sans-serif; }
+        html, body { background-color: #f1f5f9; margin: 0; font-family: -apple-system, sans-serif; }
         .tabular-nums { font-variant-numeric: tabular-nums; }
         .flip5-container { max-width: 360px; margin: 0 auto; min-height: 100vh; }
-        .sort-btn.active { background-color: #1e293b !important; color: #f8fafc !important; }
+        .sort-btn { transition: all 0.2s; }
+        .sort-btn.active { background-color: #334155 !important; color: #ffffff !important; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .spinning { animation: spin 0.8s linear infinite; }
     </style>
 </head>
-<body class="text-slate-900 antialiased">
+<body class="bg-slate-100 text-slate-800 antialiased">
 
-    <div class="flip5-container bg-slate-50 flex flex-col">
+    <div class="flip5-container bg-slate-50 flex flex-col shadow-2xl border-x border-slate-200">
         <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b border-slate-200 px-4 pt-3 pb-2.5">
             <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center gap-2">
                     <div class="h-2 w-2 rounded-full bg-emerald-500"></div>
-                    <h1 class="text-[15px] font-black tracking-tight text-slate-800">ASSET MONITOR</h1>
+                    <h1 class="text-[15px] font-black tracking-tight text-slate-900">ASSET MONITOR</h1>
                 </div>
-                <button onclick="manualRefresh()" id="refresh-btn" class="text-slate-400 hover:text-slate-600">
+                <button onclick="manualRefresh()" id="refresh-btn" class="text-slate-400 hover:text-slate-600 active:scale-90 transition-transform">
                     <i id="refresh-icon" class="fa-solid fa-rotate-right text-[12px]"></i>
                 </button>
             </div>
@@ -38,7 +39,7 @@
             <section class="bg-slate-900 rounded-2xl p-4 text-white shadow-lg">
                 <div class="text-[10px] font-bold text-slate-400 mb-1" id="account-title">EVALUATION</div>
                 <div id="total-eval" class="text-2xl font-black tabular-nums mb-4">₩ 0</div>
-                <div class="grid grid-cols-2 gap-4 text-[11px] font-bold text-slate-300">
+                <div class="grid grid-cols-2 gap-4 text-[11px] font-bold text-slate-400">
                     <div>당일 변동 <span id="day-change-amt" class="ml-1 text-white">0</span></div>
                     <div class="text-right">누적 수익 <span id="total-profit-amt" class="ml-1 text-white">0</span></div>
                 </div>
@@ -54,23 +55,61 @@
     </div>
 
     <script>
-        // 기존 함수 및 데이터 로직 유지 (동작 안정성)
         const dcGasUrl  = "https://script.google.com/macros/s/AKfycby8XB0dOwk5Tw7yUmQMiv0RfGOeYOjD_1uUcTA-rUYdc4YDoNME46GEK4ZhaxZ0b8hO/exec";
         const isaGasUrl = "https://script.google.com/macros/s/AKfycbxW7zkcTspkQKcUFJrzydqh1gbLaUmQFUraHXeSXke3TC-y4xmjXoZ2F0g8Bq743QTA/exec";
         
-        // ... (fetchData, setSort 등 이전의 잘 동작하던 JS 로직을 그대로 사용하세요)
-        // ... (렌더링 부분만 아래와 같이 수정하세요)
+        let currentTab = 'dc', currentSort = 'default', cachedData = null;
 
-        function renderItems(rawItems) {
+        function fmtWon(v) { return '₩' + Math.round(v).toLocaleString(); }
+        function fmtRate(v) { return (v > 0 ? '+' : '') + v.toFixed(2) + '%'; }
+        
+        function manualRefresh() {
+            const icon = document.getElementById('refresh-icon');
+            icon.classList.add('spinning');
+            fetchData(() => setTimeout(() => icon.classList.remove('spinning'), 500));
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            fetchData();
+        }
+
+        function fetchData(callback) {
+            const old = document.getElementById('gas-script'); if(old) old.remove();
+            window.handleGasResponse = (res) => { cachedData = res; renderData(res); if(callback) callback(); };
+            const script = document.createElement('script');
+            script.id = 'gas-script';
+            script.src = `${currentTab === 'dc' ? dcGasUrl : isaGasUrl}?callback=handleGasResponse&_=${Date.now()}`;
+            document.body.appendChild(script);
+        }
+
+        function renderData(data) {
+            document.getElementById('total-eval').innerText = fmtWon(data.summary.totalEval);
+            document.getElementById('day-change-amt').innerText = fmtWon(data.summary.diffAmt);
+            document.getElementById('total-profit-amt').innerText = fmtWon(data.summary.totalProfitAmt);
+            renderItems(data.items);
+        }
+
+        function setSort(type) {
+            currentSort = type;
+            document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('sort-' + type).classList.add('active');
+            if(cachedData) renderItems(cachedData.items);
+        }
+
+        function renderItems(items) {
             const container = document.getElementById('items-container');
             container.innerHTML = '';
-            rawItems.forEach(item => {
+            let sorted = [...items];
+            if(currentSort === 'currentRate') sorted.sort((a,b) => b.currentRate - a.currentRate);
+
+            sorted.forEach(item => {
                 const isWarning = item.rebalanceStatus && item.rebalanceStatus !== '정상';
                 const tw = item.targetWeight || 0;
                 const cw = item.currentWeight || 0;
                 
                 const card = document.createElement('div');
-                card.className = `bg-white p-3 rounded-2xl border ${isWarning ? 'border-amber-200 shadow-amber-100' : 'border-slate-200 shadow-sm'}`;
+                card.className = `bg-white p-3 rounded-2xl border ${isWarning ? 'border-amber-200 shadow-amber-50' : 'border-slate-200 shadow-sm'}`;
 
                 card.innerHTML = `
                     <div class="flex justify-between items-start mb-1">
@@ -90,6 +129,7 @@
                 container.appendChild(card);
             });
         }
+        window.onload = () => fetchData();
     </script>
 </body>
 </html>
