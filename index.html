@@ -10,342 +10,160 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        html { background-color: #f1f5f9 !important; }
-        body { background-color: #f1f5f9 !important; margin: 0; font-family: -apple-system, sans-serif; }
+        html { background-color: #f1f5f9; }
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         .tabular-nums { font-variant-numeric: tabular-nums; }
         .flip5-container { max-width: 360px; margin: 0 auto; min-height: 100vh; }
-        .sort-btn.active { background-color: #334155 !important; color: #ffffff !important; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
-        .nav-tab.active { color: #ffffff !important; border-bottom: 3px solid #10b981; font-weight: 900; }
-        @keyframes pulse-border { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        .warn-pulse { animation: pulse-border 1.8s ease-in-out infinite; }
-        
-        /* PIN 키패드 스타일 */
-        .pin-dot { width: 12px; height: 12px; border-radius: 50%; background-color: #cbd5e1; transition: all 0.1s; }
-        .pin-dot.active { background-color: #1e293b; transform: scale(1.2); }
-        .key-btn { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 50%; width: 60px; height: 60px; font-size: 20px; font-weight: bold; color: #0f172a; display: flex; align-items: center; justify-content: center; transition: all 0.1s; -webkit-tap-highlight-color: transparent; }
-        .key-btn:active { background-color: #cbd5e1; transform: scale(0.95); }
+        .nav-tab { color: #64748b; background: transparent; transition: all 0.2s; }
+        .nav-tab.active { color: #0f172a; background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-radius: 8px; font-weight: 800; }
+        .sort-btn { color: #94a3b8; transition: all 0.2s; }
+        .sort-btn.active { color: #0f172a; font-weight: 800; }
+        .card-shadow { box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
     </style>
 </head>
-<body>
+<body class="bg-slate-100">
 
     <div id="auth-screen" class="fixed inset-0 bg-slate-100 z-50 flex flex-col justify-center items-center px-6">
         <div class="bg-white p-6 rounded-3xl shadow-xl w-full max-w-[340px] text-center">
             <div class="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-md">
                 <i class="fa-solid fa-lock text-lg"></i>
             </div>
-            <h2 class="text-lg font-black text-slate-900 mb-1">대시보드 보안 인증</h2>
-            <p class="text-xs text-slate-400 mb-6">자산 정보 보호를 위해 PIN을 입력해 주세요.</p>
-            
+            <h2 class="text-lg font-black text-slate-900 mb-6">보안 인증</h2>
             <div class="flex justify-center gap-3 mb-6">
-                <div class="pin-dot" id="dot-0"></div>
-                <div class="pin-dot" id="dot-1"></div>
-                <div class="pin-dot" id="dot-2"></div>
-                <div class="pin-dot" id="dot-3"></div>
-                <div class="pin-dot" id="dot-4"></div>
-                <div class="pin-dot" id="dot-5"></div>
+                <div class="w-3 h-3 rounded-full bg-slate-200" id="dot-0"></div>
+                <div class="w-3 h-3 rounded-full bg-slate-200" id="dot-1"></div>
+                <div class="w-3 h-3 rounded-full bg-slate-200" id="dot-2"></div>
+                <div class="w-3 h-3 rounded-full bg-slate-200" id="dot-3"></div>
+                <div class="w-3 h-3 rounded-full bg-slate-200" id="dot-4"></div>
+                <div class="w-3 h-3 rounded-full bg-slate-200" id="dot-5"></div>
             </div>
-
-            <div class="flex items-center justify-center gap-2 mb-6">
-                <input type="checkbox" id="keep-login" class="w-4 h-4 rounded text-emerald-500 focus:ring-emerald-400 border-slate-300">
-                <label for="keep-login" class="text-xs font-semibold text-slate-600 select-none">이 기기에서 자동 로그인 유지</label>
+            <div class="grid grid-cols-3 gap-y-4 gap-x-2 justify-items-center max-w-[240px] mx-auto">
+                <button class="w-14 h-14 rounded-full bg-slate-50 font-bold" onclick="pressKey('1')">1</button>
+                <button class="w-14 h-14 rounded-full bg-slate-50 font-bold" onclick="pressKey('2')">2</button>
+                <button class="w-14 h-14 rounded-full bg-slate-50 font-bold" onclick="pressKey('3')">3</button>
+                <button class="w-14 h-14 rounded-full bg-slate-50 font-bold" onclick="pressKey('4')">4</button>
+                <button class="w-14 h-14 rounded-full bg-slate-50 font-bold" onclick="pressKey('5')">5</button>
+                <button class="w-14 h-14 rounded-full bg-slate-50 font-bold" onclick="pressKey('6')">6</button>
+                <button class="w-14 h-14 rounded-full bg-slate-50 font-bold" onclick="pressKey('7')">7</button>
+                <button class="w-14 h-14 rounded-full bg-slate-50 font-bold" onclick="pressKey('8')">8</button>
+                <button class="w-14 h-14 rounded-full bg-slate-50 font-bold" onclick="pressKey('9')">9</button>
+                <button class="w-14 h-14 rounded-full text-rose-500" onclick="clearPin()"><i class="fa-solid fa-trash"></i></button>
+                <button class="w-14 h-14 rounded-full bg-slate-50 font-bold" onclick="pressKey('0')">0</button>
+                <button class="w-14 h-14 rounded-full text-slate-400" onclick="backspacePin()"><i class="fa-solid fa-delete-left"></i></button>
             </div>
-
-            <div class="grid grid-cols-3 gap-y-3 gap-x-2 justify-items-center max-w-[240px] mx-auto">
-                <button class="key-btn" onclick="pressKey('1')">1</button>
-                <button class="key-btn" onclick="pressKey('2')">2</button>
-                <button class="key-btn" onclick="pressKey('3')">3</button>
-                <button class="key-btn" onclick="pressKey('4')">4</button>
-                <button class="key-btn" onclick="pressKey('5')">5</button>
-                <button class="key-btn" onclick="pressKey('6')">6</button>
-                <button class="key-btn" onclick="pressKey('7')">7</button>
-                <button class="key-btn" onclick="pressKey('8')">8</button>
-                <button class="key-btn" onclick="pressKey('9')">9</button>
-                <button class="key-btn text-rose-500 text-sm" onclick="clearPin()"><i class="fa-solid fa-trash-can"></i></button>
-                <button class="key-btn" onclick="pressKey('0')">0</button>
-                <button class="key-btn text-slate-400 text-sm" onclick="backspacePin()"><i class="fa-solid fa-backspace"></i></button>
-            </div>
-            <p id="auth-error" class="text-rose-500 text-xs font-bold mt-4 h-4 opacity-0 transition-opacity">비밀번호가 일치하지 않습니다.</p>
         </div>
     </div>
 
     <div id="main-dashboard" class="flip5-container flex flex-col pb-6 hidden">
-        <div class="bg-slate-900 px-4 pt-3 pb-1 flex justify-around border-b border-slate-800 shrink-0">
-            <button onclick="switchTab('dc')" id="tab-dc" class="nav-tab active text-slate-400 text-[14px] pb-2 px-6 transition-all">DC 연금</button>
-            <button onclick="switchTab('isa')" id="tab-isa" class="nav-tab text-slate-400 text-[14px] pb-2 px-6 transition-all">ISA 계좌</button>
-        </div>
-
-        <div class="bg-gradient-to-b from-slate-900 to-slate-950 text-white p-5 rounded-b-[2rem] shadow-xl">
-            <div class="flex justify-between items-center mb-5">
-                <h1 id="dashboard-title" class="text-[12px] font-bold text-slate-400 tracking-widest uppercase">DC 연금 계좌</h1>
-                <div class="flex items-center gap-3">
-                    <span id="update-time" class="text-[11px] text-slate-600">--:--</span>
-                    <button onclick="fetchCurrentTabData()" id="refresh-btn" class="w-8 h-8 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full transition-all duration-100 active:scale-95">
-                        <i class="fa-solid fa-rotate-right text-slate-300 text-[13px]"></i>
-                    </button>
-                </div>
-            </div>
-
-            <p class="text-[11px] text-slate-400 mb-1">총 평가금액</p>
-            <div id="total-eval" class="text-3xl font-black tabular-nums text-emerald-400 mb-6">₩0</div>
-
-            <div class="grid grid-cols-2 gap-3">
-                <div class="bg-white/5 p-3.5 rounded-2xl border border-white/10 backdrop-blur-sm">
-                    <p class="text-[11px] text-slate-400 mb-1">누적 수익액</p>
-                    <p id="total-profit-amt" class="text-lg font-black tabular-nums text-amber-400">₩0</p>
-                </div>
-                <div class="bg-white/5 p-3.5 rounded-2xl border border-white/10 backdrop-blur-sm">
-                    <p class="text-[11px] text-slate-400 mb-1">누적 수익률</p>
-                    <p id="total-profit-rate" class="text-lg font-black tabular-nums text-amber-400">0.00%</p>
-                </div>
+        <div class="px-4 py-3 bg-slate-50">
+            <div class="flex p-1 bg-slate-200/60 rounded-xl">
+                <button onclick="switchTab('dc')" id="tab-dc" class="nav-tab active flex-1 py-2 text-[13px]">DC 연금</button>
+                <button onclick="switchTab('isa')" id="tab-isa" class="nav-tab flex-1 py-2 text-[13px]">ISA 계좌</button>
             </div>
         </div>
 
-        <div class="px-4 mt-6 mb-3 flex justify-between items-center">
-            <h2 class="text-[15px] font-bold text-slate-800">보유 종목 <span id="item-count" class="text-slate-400 font-normal">0</span>개</h2>
-            <div class="flex bg-slate-200/80 p-1 rounded-xl text-[10px]">
-                <button onclick="changeSort('default')" id="btn-sort-default" class="sort-btn active px-3 py-1.5 rounded-lg transition-all font-bold">기본순</button>
-                <button onclick="changeSort('current')" id="btn-sort-current" class="sort-btn px-3 py-1.5 rounded-lg transition-all font-bold">당일</button>
-                <button onclick="changeSort('cumulative')" id="btn-sort-cumulative" class="sort-btn px-3 py-1.5 rounded-lg transition-all font-bold">누적</button>
+        <div class="bg-slate-900 text-white px-5 py-5 mx-4 rounded-2xl shadow-xl">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <p class="text-[10px] text-slate-400 font-bold tracking-widest uppercase mb-1">TOTAL EVALUATION</p>
+                    <div id="total-eval" class="text-2xl font-black tabular-nums">₩0</div>
+                </div>
+                <button onclick="fetchCurrentTabData()" id="refresh-btn" class="w-7 h-7 flex items-center justify-center bg-white/10 rounded-full">
+                    <i class="fa-solid fa-rotate-right text-slate-400 text-[11px]"></i>
+                </button>
+            </div>
+            <div class="grid grid-cols-2 gap-4 border-t border-white/10 pt-4">
+                <div>
+                    <p class="text-[9px] text-slate-500 font-bold mb-0.5">누적 수익액</p>
+                    <p id="total-profit-amt" class="text-[14px] font-bold tabular-nums text-amber-400">₩0</p>
+                </div>
+                <div>
+                    <p class="text-[9px] text-slate-500 font-bold mb-0.5">누적 수익률</p>
+                    <p id="total-profit-rate" class="text-[14px] font-bold tabular-nums text-amber-400">0.00%</p>
+                </div>
             </div>
         </div>
 
-        <div id="ticker-list" class="px-4 space-y-3 pb-6"></div>
+        <div class="px-6 mt-6 mb-2 flex justify-between items-center">
+            <h2 class="text-[13px] font-bold text-slate-700">보유 종목 <span id="item-count" class="text-slate-400 font-normal">0</span></h2>
+            <div class="flex gap-3 text-[11px]">
+                <button onclick="changeSort('default')" id="btn-sort-default" class="sort-btn active">기본</button>
+                <button onclick="changeSort('current')" id="btn-sort-current" class="sort-btn">당일</button>
+                <button onclick="changeSort('cumulative')" id="btn-sort-cumulative" class="sort-btn">누적</button>
+            </div>
+        </div>
+
+        <div id="ticker-list" class="px-4 space-y-2 pb-6"></div>
     </div>
 
     <script>
-        const dcGasUrl = "https://script.google.com/macros/s/AKfycby8XB0dOwk5Tw7yUmQMiv0RfGOeYOjD_1uUcTA-rUYdc4YDoNME46GEK4ZhaxZ0b8hO/exec";
-        const isaGasUrl = "https://script.google.com/macros/s/AKfycbxW7zkcTspkQKcUFJrzydqh1gbLaUmQFUraHXeSXke3TC-y4xmjXoZ2F0g8Bq743QTA/exec";
-
-        // PIN 의 해시값
+        const dcGasUrl = "YOUR_DC_GAS_URL";
+        const isaGasUrl = "YOUR_ISA_GAS_URL";
         const targetToken = "p_e2417c74";
+        let inputPin = "", allRawData = { dc: null, isa: null }, currentTab = 'dc', currentSortType = 'default', isAscending = false;
 
-        let inputPin = "";
-        let allRawData = { dc: null, isa: null }; 
-        let currentTab = 'dc'; 
-        let currentSortType = 'default';
-        let isAscending = false;
+        // --- 인증 로직 ---
+        function simpleHash(str) { let h = 1729; for (let i = 0; i < str.length; i++) h = Math.imul(h ^ str.charCodeAt(i), 2654435761); return "p_" + (h >>> 0).toString(16); }
+        function pressKey(num) { if (inputPin.length < 6) { inputPin += num; updatePinDots(); if (inputPin.length === 6) verifyPin(); } }
+        function backspacePin() { inputPin = inputPin.slice(0, -1); updatePinDots(); }
+        function clearPin() { inputPin = ""; updatePinDots(); }
+        function updatePinDots() { for (let i = 0; i < 6; i++) document.getElementById(`dot-${i}`).className = i < inputPin.length ? "w-3 h-3 rounded-full bg-slate-900" : "w-3 h-3 rounded-full bg-slate-200"; }
+        function verifyPin() { if (simpleHash(inputPin) === targetToken) { document.getElementById('auth-screen').classList.add('hidden'); document.getElementById('main-dashboard').classList.remove('hidden'); fetchCurrentTabData(); } else { clearPin(); } }
 
-        window.onload = function() {
-            // URL에 해시(#isa)가 있는지 먼저 확인하고 기본 탭 설정
-            const hash = window.location.hash.replace('#', '');
-            if (hash === 'isa' || hash === 'dc') {
-                currentTab = hash;
-            }
-
-            const savedToken = localStorage.getItem('dashboard_auth_token');
-            if (savedToken === targetToken) {
-                unlockDashboard();
-            }
-        };
-
-        // 브라우저 앞으로가기/뒤로가기나 URL 직접 변경 시 탭 전환 감지
-        window.onhashchange = function() {
-            const hash = window.location.hash.replace('#', '');
-            if ((hash === 'isa' || hash === 'dc') && hash !== currentTab) {
-                const mainDashboard = document.getElementById('main-dashboard');
-                // 인증이 완료되어 메인 화면이 보이는 상태일 때만 탭 전환 실행
-                if (mainDashboard && !mainDashboard.classList.contains('hidden')) {
-                    switchTab(hash, false);
-                }
-            }
-        };
-
-        function simpleHash(str) {
-            let h = 1729;
-            for (let i = 0; i < str.length; i++) {
-                h = Math.imul(h ^ str.charCodeAt(i), 2654435761);
-            }
-            return "p_" + (h >>> 0).toString(16);
-        }
-
-        function pressKey(num) {
-            if (inputPin.length >= 6) return;
-            inputPin += num;
-            updatePinDots();
-            if (inputPin.length === 6) { 
-                setTimeout(verifyPin, 100); 
-            }
-        }
-
-        function backspacePin() {
-            inputPin = inputPin.slice(0, -1);
-            updatePinDots();
-        }
-
-        function clearPin() {
-            inputPin = "";
-            updatePinDots();
-        }
-
-        function updatePinDots() {
-            for (let i = 0; i < 6; i++) {
-                const dot = document.getElementById(`dot-${i}`);
-                if (i < inputPin.length) { dot.classList.add('active'); } 
-                else { dot.classList.remove('active'); }
-            }
-        }
-
-        function verifyPin() {
-            const hashedInput = simpleHash(inputPin);
-            if (hashedInput === targetToken) {
-                if (document.getElementById('keep-login').checked) {
-                    localStorage.setItem('dashboard_auth_token', targetToken);
-                }
-                unlockDashboard();
-            } else {
-                showAuthError();
-                clearPin();
-            }
-        }
-
-        function showAuthError() {
-            const err = document.getElementById('auth-error');
-            err.style.opacity = "1";
-            setTimeout(() => { err.style.opacity = "0"; }, 2000);
-        }
-
-        function unlockDashboard() {
-            document.getElementById('auth-screen').classList.add('hidden');
-            document.getElementById('main-dashboard').classList.remove('hidden');
-            
-            // 인증 해제 후, 주소창의 해시 상태에 맞게 UI를 새로고침 처리
-            const currentHash = window.location.hash.replace('#', '');
-            if (currentHash === 'isa' || currentHash === 'dc') {
-                currentTab = currentHash;
-            }
-            
-            // 동기화를 위해 초기화 함수 직접 호출형태로 반영
-            document.getElementById('tab-dc').classList.toggle('active', currentTab === 'dc');
-            document.getElementById('tab-isa').classList.toggle('active', currentTab === 'isa');
-            document.getElementById('dashboard-title').innerText = currentTab === 'dc' ? 'DC 연금 계좌' : 'ISA 만능 계좌';
-            
-            fetchCurrentTabData();
-        }
-
+        // --- 데이터 처리 로직 ---
         function formatCurrency(val) { return '₩' + Math.round(Number(val)).toLocaleString('ko-KR'); }
-        function getPercentDetails(val) {
-            const num = parseFloat(val) || 0;
-            const sign = num > 0 ? '+' : num < 0 ? '-' : '';
-            return { num: num, sign: sign };
-        }
-
-        // updateHash 파라미터를 추가하여 무한 루프 방지
-        function switchTab(tabType, updateHash = true) {
-            if (currentTab === tabType && !updateHash) return;
-            currentTab = tabType;
-            
-            // URL 해시 업데이트
-            if (updateHash) {
-                window.location.hash = tabType;
-            }
-
-            document.getElementById('tab-dc').classList.toggle('active', tabType === 'dc');
-            document.getElementById('tab-isa').classList.toggle('active', tabType === 'isa');
-            document.getElementById('dashboard-title').innerText = tabType === 'dc' ? 'DC 연금 계좌' : 'ISA 만능 계좌';
-            resetSortUI();
-            if (allRawData[currentTab]) { renderData(allRawData[currentTab]); } else { fetchCurrentTabData(); }
-        }
-
-        function resetSortUI() {
-            currentSortType = 'default'; isAscending = false;
-            ['default', 'current', 'cumulative'].forEach(t => {
-                const b = document.getElementById(`btn-sort-${t}`);
-                b.classList.toggle('active', t === 'default');
-                if(t !== 'default') b.innerText = t === 'current' ? '당일' : '누적';
-            });
-        }
-
+        function getPercentDetails(val) { const num = parseFloat(val) || 0; return { num: num, sign: num > 0 ? '+' : num < 0 ? '-' : '' }; }
+        function switchTab(tabType) { currentTab = tabType; document.getElementById('tab-dc').classList.toggle('active', tabType === 'dc'); document.getElementById('tab-isa').classList.toggle('active', tabType === 'isa'); if (allRawData[currentTab]) renderData(allRawData[currentTab]); else fetchCurrentTabData(); }
+        
         function fetchCurrentTabData() {
-            const btn = document.getElementById('refresh-btn');
-            if(btn) {
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-slate-300 text-[13px]"></i>';
-                btn.disabled = true;
-            }
-            document.getElementById('update-time').innerText = "업데이트 중...";
-            
-            const targetUrl = currentTab === 'dc' ? dcGasUrl : isaGasUrl;
-            
-            if (!targetUrl || targetUrl.includes("YOUR_")) {
-                document.getElementById('update-time').innerText = "구글 URL 미설정";
-                if(btn) { btn.innerHTML = '<i class="fa-solid fa-rotate-right text-slate-300 text-[13px]"></i>'; btn.disabled = false; }
-                return;
-            }
-
-            const callbackName = 'jsonpCallback_' + currentTab + '_' + Math.round(100000 * Math.random());
-            
-            window[callbackName] = function(res) {
-                allRawData[currentTab] = res;
-                renderData(res);
-                if(btn) { btn.innerHTML = '<i class="fa-solid fa-rotate-right text-slate-300 text-[13px]"></i>'; btn.disabled = false; }
-                delete window[callbackName];
-                document.getElementById(callbackName).remove();
-            };
-
             const script = document.createElement('script');
-            script.id = callbackName;
-            script.src = targetUrl + (targetUrl.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName + '&_ts=' + new Date().getTime();
-            script.onerror = function() {
-                if(btn) btn.innerHTML = '<i class="fa-solid fa-exclamation-circle text-rose-400 text-[13px]"></i>';
-                document.getElementById('update-time').innerText = "통신 오류";
-                setTimeout(() => { if(btn) { btn.innerHTML = '<i class="fa-solid fa-rotate-right text-slate-300 text-[13px]"></i>'; btn.disabled = false; } }, 2000);
-            };
+            const callback = 'cb_' + Math.round(Math.random() * 100000);
+            window[callback] = (res) => { allRawData[currentTab] = res; renderData(res); delete window[callback]; document.getElementById('temp-script').remove(); };
+            script.id = 'temp-script';
+            script.src = (currentTab === 'dc' ? dcGasUrl : isaGasUrl) + "?callback=" + callback;
             document.body.appendChild(script);
         }
 
-        function renderData(tabData) {
-            if (!tabData || !tabData.summary) {
-                document.getElementById('total-eval').innerText = "₩0";
-                document.getElementById('total-profit-amt').innerText = "₩0";
-                document.getElementById('total-profit-rate').innerText = "0.00%";
-                document.getElementById('item-count').innerText = "0";
-                return;
-            }
-            document.getElementById('total-eval').innerText = formatCurrency(tabData.summary.totalEval);
-            document.getElementById('total-profit-amt').innerText = formatCurrency(tabData.summary.totalProfitAmt);
-            const rate = getPercentDetails(tabData.summary.totalProfitRate);
-            document.getElementById('total-profit-rate').innerText = rate.sign + rate.num.toFixed(2) + '%';
-            document.getElementById('item-count').innerText = tabData.items ? tabData.items.length : 0;
-            renderList(tabData.items);
-            document.getElementById('update-time').innerText = new Date().toLocaleTimeString('ko-KR', { hour:'2-digit', minute:'2-digit' });
+        function renderData(data) {
+            document.getElementById('total-eval').innerText = formatCurrency(data.summary.totalEval);
+            document.getElementById('total-profit-amt').innerText = formatCurrency(data.summary.totalProfitAmt);
+            document.getElementById('total-profit-rate').innerText = getPercentDetails(data.summary.totalProfitRate).sign + Math.abs(data.summary.totalProfitRate).toFixed(2) + '%';
+            document.getElementById('item-count').innerText = data.items.length;
+            renderList(data.items);
         }
 
         function changeSort(type) {
-            if (currentSortType === type) { isAscending = !isAscending; } else { currentSortType = type; isAscending = false; }
-            const buttons = {'default': { id: 'btn-sort-default', label: '기본순' }, 'current': { id: 'btn-sort-current', label: '당일' }, 'cumulative': { id: 'btn-sort-cumulative', label: '누적' }};
-            Object.values(buttons).forEach(btnInfo => { const btn = document.getElementById(btnInfo.id); btn.classList.remove('active'); btn.innerText = btnInfo.label; });
-            const activeBtn = document.getElementById(`btn-sort-${type}`); activeBtn.classList.add('active');
-            if (type !== 'default') { const arrow = isAscending ? ' ▲' : ' ▼'; activeBtn.innerText = buttons[type].label + arrow; }
-            if (allRawData[currentTab]) { renderList(allRawData[currentTab].items); }
+            currentSortType = type;
+            document.querySelectorAll('.sort-btn').forEach(b => b.classList.toggle('active', b.id === 'btn-sort-' + type));
+            if (allRawData[currentTab]) renderList(allRawData[currentTab].items);
         }
 
         function renderList(items) {
-            const list = document.getElementById('ticker-list');
-            list.innerHTML = ''; if (!items || items.length === 0) return;
+            const list = document.getElementById('ticker-list'); list.innerHTML = '';
             let sorted = [...items];
-
-            if (currentSortType === 'default') {
-                sorted.sort((a, b) => { const aWarn = a.rebalanceStatus !== '정상' ? 0 : 1; const bWarn = b.rebalanceStatus !== '정상' ? 0 : 1; return aWarn - bWarn; });
-            } else if (currentSortType === 'current') {
-                sorted.sort((a, b) => isAscending ? a.currentRate - b.currentRate : b.currentRate - a.currentRate);
-            } else if (currentSortType === 'cumulative') {
-                sorted.sort((a, b) => isAscending ? a.cumulativeRate - b.cumulativeRate : b.cumulativeRate - a.cumulativeRate);
-            }
-
+            if (currentSortType === 'current') sorted.sort((a,b) => b.currentRate - a.currentRate);
+            if (currentSortType === 'cumulative') sorted.sort((a,b) => b.cumulativeRate - a.cumulativeRate);
+            
             sorted.forEach(item => {
                 const cur = getPercentDetails(item.currentRate); const cum = getPercentDetails(item.cumulativeRate);
-                const getRateColor = (n) => n > 0 ? 'text-rose-600' : n < 0 ? 'text-blue-700' : 'text-slate-400';
-                const fmtRate = (n) => Math.abs(n).toFixed(2) + '%';
                 const isWarning = item.rebalanceStatus !== '정상';
-                const card = document.createElement('div'); card.className = "bg-white rounded-2xl border shadow-md overflow-hidden";
-                card.style.borderLeft = isWarning ? '4px solid #f59e0b' : '4px solid #10b981';
-                const curDisplay = `${cur.sign} ${fmtRate(cur.num)}`; const cumDisplay = `( ${cum.sign} ${fmtRate(cum.num)} )`;
-                const category = item.category || '자산'; const name = item.name || '종목명 정보 없음'; const evalAmt = item.evalAmt || 0; const statusText = item.rebalanceStatus || '정상';
-
-                if (isWarning) {
-                    card.innerHTML = `<div class="warn-pulse bg-amber-400 px-4 py-1.5 flex items-center gap-2"><i class="fa-solid fa-triangle-exclamation text-amber-900 text-[11px]"></i><span class="text-[11px] font-black text-amber-900 tracking-wide">${statusText}</span></div><div class="px-4 py-2.5 flex items-center gap-3"><div class="flex-1 min-w-0"><div class="flex items-center gap-2 mb-0.5"><span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 shrink-0">${category}</span><span class="font-bold text-slate-900 text-[13px] truncate">${name}</span></div><div class="text-[11px] text-slate-400 tabular-nums">${formatCurrency(evalAmt)}</div></div><div class="text-right tabular-nums shrink-0"><div class="${getRateColor(cur.num)} font-bold text-[13px]">${curDisplay}</div><div class="${getRateColor(cum.num)} text-[11px] font-semibold mt-0.5">${cumDisplay}</div></div></div>`;
-                } else {
-                    card.innerHTML = `<div class="px-4 py-2.5 flex items-center gap-3"><div class="flex-1 min-w-0"><div class="flex items-center gap-2 mb-0.5"><span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 shrink-0">${category}</span><span class="font-bold text-slate-900 text-[13px] truncate">${name}</span></div><div class="text-[11px] text-slate-400 tabular-nums">${formatCurrency(evalAmt)}</div></div><div class="text-right tabular-nums shrink-0"><div class="${getRateColor(cur.num)} font-bold text-[13px]">${curDisplay}</div><div class="${getRateColor(cum.num)} text-[11px] font-semibold mt-0.5">${cumDisplay}</div></div></div>`;
-                }
+                const card = document.createElement('div');
+                card.className = `bg-white p-4 rounded-2xl card-shadow border ${isWarning ? 'border-amber-300' : 'border-slate-100'}`;
+                card.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[9px] font-bold text-slate-400">${item.category}</span>
+                            <span class="text-[13px] font-bold text-slate-800">${item.name}</span>
+                        </div>
+                        ${isWarning ? '<span class="text-[8px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">REBALANCE</span>' : ''}
+                    </div>
+                    <div class="flex justify-between items-end">
+                        <span class="text-[12px] text-slate-500 tabular-nums">${formatCurrency(item.evalAmt)}</span>
+                        <div class="text-right">
+                            <div class="text-[13px] font-bold ${cur.num >= 0 ? 'text-rose-600' : 'text-blue-600'}">${cur.sign}${Math.abs(cur.num).toFixed(2)}%</div>
+                            <div class="text-[10px] font-bold text-slate-400">${cum.sign}${Math.abs(cum.num).toFixed(2)}%</div>
+                        </div>
+                    </div>`;
                 list.appendChild(card);
             });
         }
