@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DC연금계좌 모니터</title>
+    <title>자산 모니터링 시스템</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -15,18 +15,25 @@
         .tabular-nums { font-variant-numeric: tabular-nums; }
         .flip5-container { max-width: 360px; margin: 0 auto; min-height: 100vh; }
         .sort-btn.active { background-color: #334155 !important; color: #ffffff !important; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+        .nav-tab.active { color: #ffffff !important; border-bottom: 3px solid #10b981; font-weight: 900; }
         @keyframes pulse-border { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         .warn-pulse { animation: pulse-border 1.8s ease-in-out infinite; }
     </style>
 </head>
 <body>
     <div class="flip5-container flex flex-col pb-6">
+        
+        <div class="bg-slate-900 px-4 pt-3 pb-1 flex justify-around border-b border-slate-800 shrink-0">
+            <button onclick="switchTab('dc')" id="tab-dc" class="nav-tab active text-slate-400 text-[14px] pb-2 px-6 transition-all">DC 연금</button>
+            <button onclick="switchTab('isa')" id="tab-isa" class="nav-tab text-slate-400 text-[14px] pb-2 px-6 transition-all">ISA 계좌</button>
+        </div>
+
         <div class="bg-gradient-to-b from-slate-900 to-slate-950 text-white p-5 rounded-b-[2rem] shadow-xl">
             <div class="flex justify-between items-center mb-5">
-                <h1 class="text-[12px] font-bold text-slate-400 tracking-widest uppercase">DC 연금 계좌</h1>
+                <h1 id="dashboard-title" class="text-[12px] font-bold text-slate-400 tracking-widest uppercase">DC 연금 계좌</h1>
                 <div class="flex items-center gap-3">
                     <span id="update-time" class="text-[11px] text-slate-600">--:--</span>
-                    <button onclick="fetchData()" id="refresh-btn" class="w-8 h-8 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full transition-all duration-100 active:scale-95">
+                    <button onclick="fetchCurrentTabData()" id="refresh-btn" class="w-8 h-8 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full transition-all duration-100 active:scale-95">
                         <i class="fa-solid fa-rotate-right text-slate-300 text-[13px]"></i>
                     </button>
                 </div>
@@ -60,7 +67,12 @@
     </div>
 
     <script>
-        let currentRawData = [];
+        // ⚠️ 각 시트별 새로 배포된 구글 웹앱 URL 주소를 여기에 넣어주세요!
+        const dcGasUrl = "https://script.google.com/macros/s/AKfycby8XB0dOwk5Tw7yUmQMiv0RfGOeYOjD_1uUcTA-rUYdc4YDoNME46GEK4ZhaxZ0b8hO/exec";
+        const isaGasUrl = "https://script.google.com/macros/s/AKfycbxW7zkcTspkQKcUFJrzydqh1gbLaUmQFUraHXeSXke3TC-y4xmjXoZ2F0g8Bq743QTA/exec";
+
+        let allRawData = { dc: null, isa: null }; 
+        let currentTab = 'dc'; 
         let currentSortType = 'default';
         let isAscending = false;
 
@@ -75,20 +87,49 @@
             return { num: finalNum, sign: sign };
         }
 
-        // 🌟 외부 호스팅(GitHub) 환경에 맞춰 원격 데이터 안전 래핑 수정한 함수
-        function fetchData() {
+        // 탭 전환 처리 함수
+        function switchTab(tabType) {
+            if (currentTab === tabType) return;
+            currentTab = tabType;
+            
+            document.getElementById('tab-dc').classList.toggle('active', tabType === 'dc');
+            document.getElementById('tab-isa').classList.toggle('active', tabType === 'isa');
+            document.getElementById('dashboard-title').innerText = tabType === 'dc' ? 'DC 연금 계좌' : 'ISA 만능 계좌';
+            
+            resetSortUI();
+
+            // 메모리에 기존 탭 데이터가 있다면 즉시 보여주고, 없으면 새로 불러옵니다.
+            if (allRawData[currentTab]) {
+                renderData(allRawData[currentTab]);
+            } else {
+                fetchCurrentTabData();
+            }
+        }
+
+        function resetSortUI() {
+            currentSortType = 'default';
+            isAscending = false;
+            ['default', 'current', 'cumulative'].forEach(t => {
+                const b = document.getElementById(`btn-sort-${t}`);
+                b.classList.toggle('active', t === 'default');
+                if(t !== 'default') b.innerText = t === 'current' ? '당일' : '누적';
+            });
+        }
+
+        // 현재 활성화된 탭의 구글 시트 데이터를 원격 호출하는 핵심 로직
+        function fetchCurrentTabData() {
             const btn = document.getElementById('refresh-btn');
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-slate-300 text-[13px]"></i>';
             btn.disabled = true;
             document.getElementById('update-time').innerText = "업데이트 중...";
             
-            // ⚠️여기에 새로 배포하신 [구글 앱스 스크립트 웹앱 URL]을 넣어주세요! (/exec로 끝나는 주소)
-            const gasUrl = "https://script.google.com/macros/s/AKfycby8XB0dOwk5Tw7yUmQMiv0RfGOeYOjD_1uUcTA-rUYdc4YDoNME46GEK4ZhaxZ0b8hO/exec"; 
+            const targetUrl = currentTab === 'dc' ? dcGasUrl : isaGasUrl;
+            const callbackName = 'jsonpCallback_' + currentTab + '_' + Math.round(100000 * Math.random());
             
-            // 깃허브 크로스 도메인 보안 정책(CORS) 우회를 위한 동적 런타임 콜백 구현
-            const callbackName = 'jsonpCallback_' + Math.round(100000 * Math.random());
             window[callbackName] = function(res) {
-                processData(res);
+                allRawData[currentTab] = res; // 해당 탭 데이터 캐싱
+                renderData(res);
+                
                 btn.innerHTML = '<i class="fa-solid fa-rotate-right text-slate-300 text-[13px]"></i>';
                 btn.disabled = false;
                 delete window[callbackName];
@@ -97,9 +138,8 @@
 
             const script = document.createElement('script');
             script.id = callbackName;
-            script.src = gasUrl + (gasUrl.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName + '&_ts=' + new Date().getTime();
+            script.src = targetUrl + (targetUrl.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName + '&_ts=' + new Date().getTime();
             script.onerror = function() {
-                console.error("Data fetch failed.");
                 btn.innerHTML = '<i class="fa-solid fa-exclamation-circle text-rose-400 text-[13px]"></i>';
                 document.getElementById('update-time').innerText = "통신 오류";
                 setTimeout(() => {
@@ -110,13 +150,30 @@
             document.body.appendChild(script);
         }
 
-        function changeSort(type) {
-            if (currentSortType === type) {
-                isAscending = !isAscending;
-            } else {
-                currentSortType = type;
-                isAscending = false; 
+        function renderData(tabData) {
+            if (!tabData || !tabData.summary) {
+                document.getElementById('total-eval').innerText = "₩0";
+                document.getElementById('total-profit-amt').innerText = "₩0";
+                document.getElementById('total-profit-rate').innerText = "0.00%";
+                document.getElementById('item-count').innerText = "0";
+                document.getElementById('ticker-list').innerHTML = '<p class="text-center text-slate-400 text-[12px] pt-4">데이터 로드 실패</p>';
+                return;
             }
+            
+            document.getElementById('total-eval').innerText = formatCurrency(tabData.summary.totalEval);
+            document.getElementById('total-profit-amt').innerText = formatCurrency(tabData.summary.totalProfitAmt);
+            
+            const rate = getPercentDetails(tabData.summary.totalProfitRate);
+            document.getElementById('total-profit-rate').innerText = rate.sign + rate.num.toFixed(2) + '%';
+            
+            document.getElementById('item-count').innerText = tabData.items ? tabData.items.length : 0;
+            renderList(tabData.items);
+            document.getElementById('update-time').innerText = new Date().toLocaleTimeString('ko-KR', { hour:'2-digit', minute:'2-digit' });
+        }
+
+        function changeSort(type) {
+            if (currentSortType === type) { isAscending = !isAscending; } 
+            else { currentSortType = type; isAscending = false; }
 
             const buttons = {
                 'default': { id: 'btn-sort-default', label: '기본순' },
@@ -138,26 +195,17 @@
                 activeBtn.innerText = buttons[type].label + arrow;
             }
 
-            renderList();
+            if (allRawData[currentTab]) {
+                renderList(allRawData[currentTab].items);
+            }
         }
 
-        function processData(res) {
-            document.getElementById('total-eval').innerText = formatCurrency(res.summary.totalEval);
-            document.getElementById('total-profit-amt').innerText = formatCurrency(res.summary.totalProfitAmt);
-            
-            const rate = getPercentDetails(res.summary.totalProfitRate);
-            document.getElementById('total-profit-rate').innerText = rate.sign + rate.num.toFixed(2) + '%';
-            
-            document.getElementById('item-count').innerText = res.items.length;
-            currentRawData = res.items || [];
-            renderList();
-            document.getElementById('update-time').innerText = new Date().toLocaleTimeString('ko-KR', { hour:'2-digit', minute:'2-digit' });
-        }
-
-        function renderList() {
+        function renderList(items) {
             const list = document.getElementById('ticker-list');
             list.innerHTML = '';
-            let sorted = [...currentRawData];
+            if (!items || items.length === 0) return;
+            
+            let sorted = [...items];
 
             if (currentSortType === 'default') {
                 sorted.sort((a, b) => {
@@ -174,32 +222,35 @@
             sorted.forEach(item => {
                 const cur = getPercentDetails(item.currentRate);
                 const cum = getPercentDetails(item.cumulativeRate);
-
                 const getRateColor = (n) => n > 0 ? 'text-rose-600' : n < 0 ? 'text-blue-700' : 'text-slate-400';
                 const fmtRate = (n) => Math.abs(n).toFixed(2) + '%';
-
                 const isWarning = item.rebalanceStatus !== '정상';
 
                 const card = document.createElement('div');
                 card.className = "bg-white rounded-2xl border shadow-md overflow-hidden";
+                card.style.borderLeft = isWarning ? '4px solid #f59e0b' : '4px solid #10b981';
 
                 const curDisplay = `${cur.sign} ${fmtRate(cur.num)}`;
                 const cumDisplay = `( ${cum.sign} ${fmtRate(cum.num)} )`;
 
+                const category = item.category || '자산';
+                const name = item.name || '종목명 정보 없음';
+                const evalAmt = item.evalAmt || 0;
+                const statusText = item.rebalanceStatus || '정상';
+
                 if (isWarning) {
-                    card.style.borderLeft = '4px solid #f59e0b';
                     card.innerHTML = `
                         <div class="warn-pulse bg-amber-400 px-4 py-1.5 flex items-center gap-2">
                             <i class="fa-solid fa-triangle-exclamation text-amber-900 text-[11px]"></i>
-                            <span class="text-[11px] font-black text-amber-900 tracking-wide">${item.rebalanceStatus}</span>
+                            <span class="text-[11px] font-black text-amber-900 tracking-wide">${statusText}</span>
                         </div>
                         <div class="px-4 py-2.5 flex items-center gap-3">
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center gap-2 mb-0.5">
-                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 shrink-0">${item.category}</span>
-                                    <span class="font-bold text-slate-900 text-[13px] truncate">${item.name}</span>
+                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 shrink-0">${category}</span>
+                                    <span class="font-bold text-slate-900 text-[13px] truncate">${name}</span>
                                 </div>
-                                <div class="text-[11px] text-slate-400 tabular-nums">${formatCurrency(item.evalAmt)}</div>
+                                <div class="text-[11px] text-slate-400 tabular-nums">${formatCurrency(evalAmt)}</div>
                             </div>
                             <div class="text-right tabular-nums shrink-0">
                                 <div class="${getRateColor(cur.num)} font-bold text-[13px]">${curDisplay}</div>
@@ -208,15 +259,14 @@
                         </div>
                     `;
                 } else {
-                    card.style.borderLeft = '4px solid #10b981';
                     card.innerHTML = `
                         <div class="px-4 py-2.5 flex items-center gap-3">
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center gap-2 mb-0.5">
-                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 shrink-0">${item.category}</span>
-                                    <span class="font-bold text-slate-900 text-[13px] truncate">${item.name}</span>
+                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 shrink-0">${category}</span>
+                                    <span class="font-bold text-slate-900 text-[13px] truncate">${name}</span>
                                 </div>
-                                <div class="text-[11px] text-slate-400 tabular-nums">${formatCurrency(item.evalAmt)}</div>
+                                <div class="text-[11px] text-slate-400 tabular-nums">${formatCurrency(evalAmt)}</div>
                             </div>
                             <div class="text-right tabular-nums shrink-0">
                                 <div class="${getRateColor(cur.num)} font-bold text-[13px]">${curDisplay}</div>
@@ -225,12 +275,11 @@
                         </div>
                     `;
                 }
-
                 list.appendChild(card);
             });
         }
 
-        window.onload = fetchData;
+        window.onload = fetchCurrentTabData;
     </script>
 </body>
 </html>
