@@ -10,22 +10,35 @@
         html, body { background-color: #f1f5f9; margin: 0; font-family: -apple-system, sans-serif; }
         .tabular-nums { font-variant-numeric: tabular-nums; }
         .flip5-container { max-width: 360px; margin: 0 auto; min-height: 100vh; }
+        .sort-btn { transition: all 0.15s; }
         .sort-btn.active { background-color: #334155 !important; color: #ffffff !important; }
+        .sort-btn.asc::after  { content: ' ↑'; font-size: 9px; }
+        .sort-btn.desc::after { content: ' ↓'; font-size: 9px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinning { animation: spin 0.8s linear infinite; }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 antialiased">
 
     <div class="flip5-container bg-slate-50 flex flex-col shadow-2xl border-x border-slate-200/50">
-        
+
+        <!-- 헤더 -->
         <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-4 pt-3 pb-2.5">
             <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center gap-2">
                     <div class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
                     <h1 class="text-[15px] font-black text-slate-900">자산 관리 시스템</h1>
                 </div>
-                <div id="last-update" class="text-[10px] font-semibold text-slate-400 tabular-nums">연결 중...</div>
+                <div class="flex items-center gap-2">
+                    <div id="last-update" class="text-[10px] font-semibold text-slate-400 tabular-nums">연결 중...</div>
+                    <!-- 수동 갱신 버튼 -->
+                    <button onclick="manualRefresh()" id="refresh-btn"
+                        class="w-7 h-7 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 active:scale-95 transition-all">
+                        <i id="refresh-icon" class="fa-solid fa-rotate-right text-[11px]"></i>
+                    </button>
+                </div>
             </div>
-            
+
             <div class="flex p-0.5 bg-slate-100 rounded-lg border border-slate-200/50">
                 <button onclick="switchTab('dc')" id="tab-dc" class="flex-1 py-1.5 text-center text-xs font-bold rounded-md transition-all">DC 연금</button>
                 <button onclick="switchTab('isa')" id="tab-isa" class="flex-1 py-1.5 text-center text-xs font-bold rounded-md transition-all">ISA 중개</button>
@@ -33,28 +46,43 @@
         </header>
 
         <main class="flex-1 overflow-y-auto px-4 py-3 space-y-4">
-            
+
+            <!-- 상단 요약 카드 -->
             <section class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 rounded-2xl p-4 text-white shadow-xl relative overflow-hidden">
                 <div class="text-[10px] font-bold text-slate-400 mb-1" id="account-title">EVALUATION</div>
-                <div id="total-eval" class="text-2xl font-black tracking-tight tabular-nums mb-3 text-slate-100">₩ 0</div>
-                
-                <div class="grid grid-cols-2 gap-2 pt-3 border-t border-white/10">
+                <!-- 총 평가금액: 이전 버전처럼 에메랄드 강조 -->
+                <div id="total-eval" class="text-2xl font-black tracking-tight tabular-nums mb-3 text-emerald-400">₩ 0</div>
+
+                <!-- 당일 변동폭 + 누적수익액 + 누적수익률 3분할 -->
+                <div class="grid grid-cols-3 gap-2 pt-3 border-t border-white/10">
                     <div>
-                        <div class="text-[9px] font-bold text-slate-400 mb-0.5">당일 변동폭</div>
-                        <div id="day-change" class="text-[12px] font-bold tabular-nums flex items-center gap-1">0원 (0.00%)</div>
+                        <div class="text-[9px] font-bold text-slate-400 mb-0.5">당일 변동</div>
+                        <div id="day-change-amt" class="text-[11px] font-bold tabular-nums">─ 0원</div>
+                        <div id="day-change-rate" class="text-[10px] font-bold tabular-nums mt-0.5"></div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-[9px] font-bold text-slate-400 mb-0.5">누적 수익액</div>
+                        <div id="total-profit-amt" class="text-[11px] font-bold tabular-nums">₩ 0</div>
                     </div>
                     <div class="text-right">
-                        <div class="text-[9px] font-bold text-slate-400 mb-0.5">누적 손익</div>
-                        <div id="total-profit" class="text-[12px] font-bold text-emerald-400 tabular-nums">₩ 0</div>
+                        <div class="text-[9px] font-bold text-slate-400 mb-0.5">누적 수익률</div>
+                        <div id="total-profit-rate" class="text-[11px] font-bold tabular-nums">0.00%</div>
                     </div>
                 </div>
             </section>
 
+            <!-- 정렬 바 -->
             <section class="flex items-center justify-between bg-white px-3 py-2 rounded-xl border border-slate-200/60 shadow-sm">
-                <span class="text-[11px] font-bold text-slate-400">보유 종목</span>
+                <span class="text-[11px] font-bold text-slate-400">
+                    보유 종목 <span id="item-count" class="text-slate-600">0</span>개
+                </span>
                 <div class="flex gap-1">
-                    <button onclick="setSort('evalAmt')" id="sort-evalAmt" class="sort-btn px-2.5 py-1 text-[10px] font-bold text-slate-500 bg-slate-50 rounded-md">평가액순</button>
-                    <button onclick="setSort('currentRate')" id="sort-currentRate" class="sort-btn px-2.5 py-1 text-[10px] font-bold text-slate-500 bg-slate-50 rounded-md">수익률순</button>
+                    <button onclick="setSort('default')" id="sort-default"
+                        class="sort-btn px-2.5 py-1 text-[10px] font-bold text-slate-500 bg-slate-50 rounded-md">기본순</button>
+                    <button onclick="setSort('currentRate')" id="sort-currentRate"
+                        class="sort-btn px-2.5 py-1 text-[10px] font-bold text-slate-500 bg-slate-50 rounded-md">당일</button>
+                    <button onclick="setSort('cumulativeRate')" id="sort-cumulativeRate"
+                        class="sort-btn px-2.5 py-1 text-[10px] font-bold text-slate-500 bg-slate-50 rounded-md">누적</button>
                 </div>
             </section>
 
@@ -65,144 +93,234 @@
     </div>
 
     <script>
-        // ⚠️ 본인의 실제 배포된 구글 웹앱 URL 주소로 매핑해주세요!
-        const dcGasUrl = "https://script.google.com/macros/s/AKfycby8XB0dOwk5Tw7yUmQMiv0RfGOeYOjD_1uUcTA-rUYdc4YDoNME46GEK4ZhaxZ0b8hO/exec"; 
+        const dcGasUrl  = "https://script.google.com/macros/s/AKfycby8XB0dOwk5Tw7yUmQMiv0RfGOeYOjD_1uUcTA-rUYdc4YDoNME46GEK4ZhaxZ0b8hO/exec";
         const isaGasUrl = "https://script.google.com/macros/s/AKfycbxW7zkcTspkQKcUFJrzydqh1gbLaUmQFUraHXeSXke3TC-y4xmjXoZ2F0g8Bq743QTA/exec";
-        
-        
-        let currentTab = 'dc';
-        let currentSort = 'evalAmt';
-        let cachedData = null;
 
-        function formatRate(value) {
-            const num = parseFloat(value);
-            if (isNaN(num)) return '0.00%';
-            return num > 0 ? `+${num.toFixed(2)}%` : `${num.toFixed(2)}%`;
-        }
+        let currentTab  = 'dc';
+        let currentSort = 'default';   // 'default' | 'currentRate' | 'cumulativeRate'
+        let sortDir     = {};           // { currentRate: 1, cumulativeRate: 1 } — 1=내림차순, -1=오름차순
+        let cachedData  = null;
+        let autoRefreshTimer = null;
 
-        function formatCurrency(val) {
+        /* ── 포맷 헬퍼 ── */
+        function fmtWon(val) {
             return '₩ ' + Math.round(val).toLocaleString();
         }
-
-        function getRateColor(val) {
-            const num = parseFloat(val);
-            if (num > 0) return 'text-rose-500';
-            if (num < 0) return 'text-blue-600';
-            return 'text-slate-600';
+        function fmtRate(val) {
+            const n = parseFloat(val);
+            if (isNaN(n)) return '0.00%';
+            return (n > 0 ? '+' : '') + n.toFixed(2) + '%';
+        }
+        function rateColor(val) {
+            const n = parseFloat(val);
+            if (n > 0) return 'text-rose-400';
+            if (n < 0) return 'text-blue-400';
+            return 'text-slate-400';
+        }
+        function rateColorCard(val) {   // 카드 아이템용 (어두운 배경 아님)
+            const n = parseFloat(val);
+            if (n > 0) return 'text-rose-500';
+            if (n < 0) return 'text-blue-600';
+            return 'text-slate-500';
         }
 
+        /* ── 탭 전환 ── */
         function switchTab(tab) {
-            currentTab = tab;
-            document.getElementById('tab-dc').className = `flex-1 py-1.5 text-center text-xs font-bold rounded-md transition-all ${tab === 'dc' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'}`;
-            document.getElementById('tab-isa').className = `flex-1 py-1.5 text-center text-xs font-bold rounded-md transition-all ${tab === 'isa' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'}`;
+            currentTab  = tab;
+            currentSort = 'default';
+            sortDir     = {};
+            document.getElementById('tab-dc').className  = `flex-1 py-1.5 text-center text-xs font-bold rounded-md transition-all ${tab==='dc'  ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'}`;
+            document.getElementById('tab-isa').className = `flex-1 py-1.5 text-center text-xs font-bold rounded-md transition-all ${tab==='isa' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'}`;
             fetchData();
         }
 
+        /* ── 정렬 ── */
         function setSort(prop) {
-            currentSort = prop;
-            document.getElementById('sort-evalAmt').classList.toggle('active', prop === 'evalAmt');
-            document.getElementById('sort-currentRate').classList.toggle('active', prop === 'currentRate');
-            if (cachedData) renderData(cachedData);
+            if (prop === 'default') {
+                currentSort = 'default';
+            } else {
+                if (currentSort === prop) {
+                    sortDir[prop] = (sortDir[prop] || 1) * -1;   // 오름↔내림 토글
+                } else {
+                    currentSort   = prop;
+                    sortDir[prop] = sortDir[prop] || 1;           // 처음 누르면 내림차순
+                }
+            }
+            updateSortButtons();
+            if (cachedData) renderItems(cachedData.items);
         }
 
-        function fetchData() {
+        function updateSortButtons() {
+            ['default','currentRate','cumulativeRate'].forEach(id => {
+                const btn = document.getElementById('sort-' + id);
+                if (!btn) return;
+                btn.classList.toggle('active', currentSort === id);
+                btn.classList.remove('asc','desc');
+                if (currentSort === id && id !== 'default') {
+                    btn.classList.add(sortDir[id] === 1 ? 'desc' : 'asc');
+                }
+            });
+        }
+
+        /* ── 수동 갱신 ── */
+        function manualRefresh() {
+            const icon = document.getElementById('refresh-icon');
+            icon.classList.add('spinning');
+            fetchData(() => {
+                setTimeout(() => icon.classList.remove('spinning'), 400);
+            });
+        }
+
+        /* ── 데이터 fetch (JSONP) ── */
+        function fetchData(onDone) {
             const container = document.getElementById('items-container');
-            container.innerHTML = `<div class="text-center text-xs text-slate-400 py-6">동기화 중...</div>`;
-            
+            if (!cachedData) {
+                container.innerHTML = `<div class="text-center text-xs text-slate-400 py-6">동기화 중...</div>`;
+            }
+
             const targetUrl = currentTab === 'dc' ? dcGasUrl : isaGasUrl;
-            const oldScript = document.getElementById('gas-script');
-            if (oldScript) oldScript.remove();
-            
+            const old = document.getElementById('gas-script');
+            if (old) old.remove();
+
             window.handleGasResponse = function(response) {
                 if (!response || !response.summary) {
-                    container.innerHTML = `<div class="text-center text-xs text-rose-500 py-6">데이터 규격 에러 발생</div>`;
+                    container.innerHTML = `<div class="text-center text-xs text-rose-500 py-6">데이터 규격 에러</div>`;
+                    if (onDone) onDone();
                     return;
                 }
                 cachedData = response;
                 renderData(response);
+                if (onDone) onDone();
             };
 
-            const script = document.createElement('script');
-            script.id = 'gas-script';
-            script.src = `${targetUrl}?callback=handleGasResponse&_=${new Date().getTime()}`;
+            const script   = document.createElement('script');
+            script.id      = 'gas-script';
+            script.src     = `${targetUrl}?callback=handleGasResponse&_=${Date.now()}`;
             document.body.appendChild(script);
         }
 
+        /* ── 전체 렌더 ── */
         function renderData(data) {
-            document.getElementById('account-title').innerText = currentTab === 'dc' ? 'DC RETIREMENT PENSION' : 'ISA INVESTMENT ACCOUNT';
-            document.getElementById('total-eval').innerText = formatCurrency(data.summary.totalEval);
-            
-            const diffAmt = data.summary.diffAmt || 0;
-            const diffRate = data.summary.diffRate || 0;
-            let changeEl = document.getElementById('day-change');
-            
+            // 계좌명
+            document.getElementById('account-title').innerText =
+                currentTab === 'dc' ? 'DC RETIREMENT PENSION' : 'ISA INVESTMENT ACCOUNT';
+
+            // 총 평가금액
+            document.getElementById('total-eval').innerText = fmtWon(data.summary.totalEval);
+
+            // 당일 변동폭
+            const diffAmt  = data.summary.diffAmt  || 0;
+            const diffRate = data.summary.diffRate  || 0;
+            const amtEl    = document.getElementById('day-change-amt');
+            const rateEl   = document.getElementById('day-change-rate');
+
             if (diffAmt > 0) {
-                changeEl.className = "text-[12px] font-bold text-rose-500 tabular-nums flex items-center gap-1";
-                changeEl.innerHTML = `▲ ${Math.abs(diffAmt).toLocaleString()}원 <span class="bg-rose-100 text-rose-600 px-1 rounded text-[10px] font-black">+${diffRate.toFixed(2)}%</span>`;
+                amtEl.className  = `text-[11px] font-bold tabular-nums text-rose-400`;
+                amtEl.innerText  = `▲ ${Math.round(Math.abs(diffAmt)).toLocaleString()}원`;
+                rateEl.className = `text-[10px] font-bold tabular-nums text-rose-400`;
+                rateEl.innerText = `+${diffRate.toFixed(2)}%`;
             } else if (diffAmt < 0) {
-                changeEl.className = "text-[12px] font-bold text-blue-600 tabular-nums flex items-center gap-1";
-                changeEl.innerHTML = `▼ ${Math.abs(diffAmt).toLocaleString()}원 <span class="bg-blue-100 text-blue-600 px-1 rounded text-[10px] font-black">${diffRate.toFixed(2)}%</span>`;
+                amtEl.className  = `text-[11px] font-bold tabular-nums text-blue-400`;
+                amtEl.innerText  = `▼ ${Math.round(Math.abs(diffAmt)).toLocaleString()}원`;
+                rateEl.className = `text-[10px] font-bold tabular-nums text-blue-400`;
+                rateEl.innerText = `${diffRate.toFixed(2)}%`;
             } else {
-                changeEl.className = "text-[12px] font-bold text-slate-400 tabular-nums flex items-center gap-1";
-                changeEl.innerHTML = `─ 0원 <span class="bg-slate-100 text-slate-500 px-1 rounded text-[10px] font-black">0.00%</span>`;
+                amtEl.className  = `text-[11px] font-bold tabular-nums text-slate-400`;
+                amtEl.innerText  = `─ 0원`;
+                rateEl.className = `text-[10px] font-bold tabular-nums text-slate-500`;
+                rateEl.innerText = `0.00%`;
             }
 
-            document.getElementById('total-profit').innerText = formatCurrency(data.summary.totalProfitAmt);
-            document.getElementById('total-profit').className = `text-[12px] font-bold tabular-nums ${getRateColor(data.summary.totalProfitAmt)}`;
-            
-            const now = new Date();
-            document.getElementById('last-update').innerText = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+            // 누적 수익액 / 누적 수익률
+            const profitAmt  = data.summary.totalProfitAmt  || 0;
+            const profitRate = data.summary.totalProfitRate || 0;
+            const paEl = document.getElementById('total-profit-amt');
+            const prEl = document.getElementById('total-profit-rate');
+            paEl.innerText  = fmtWon(profitAmt);
+            paEl.className  = `text-[11px] font-bold tabular-nums ${rateColor(profitAmt)}`;
+            prEl.innerText  = fmtRate(profitRate);
+            prEl.className  = `text-[11px] font-bold tabular-nums ${rateColor(profitRate)}`;
 
-            let items = [...data.items];
-            items.sort((a, b) => b[currentSort] - a[currentSort]);
+            // 업데이트 시각
+            const now = new Date();
+            document.getElementById('last-update').innerText =
+                `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+
+            renderItems(data.items);
+        }
+
+        /* ── 종목 카드 렌더 ── */
+        function renderItems(rawItems) {
+            let items = [...rawItems];
+
+            if (currentSort === 'default') {
+                // 기본순: 리밸런싱 대상 상단, 나머지 원래 순서
+                items.sort((a, b) => {
+                    const aW = (a.rebalanceStatus && a.rebalanceStatus !== '정상') ? 0 : 1;
+                    const bW = (b.rebalanceStatus && b.rebalanceStatus !== '정상') ? 0 : 1;
+                    return aW - bW;
+                });
+            } else {
+                const dir = sortDir[currentSort] || 1;
+                items.sort((a, b) => dir * (b[currentSort] - a[currentSort]));
+            }
+
+            document.getElementById('item-count').innerText = items.length;
+            updateSortButtons();
 
             const container = document.getElementById('items-container');
             container.innerHTML = '';
 
             items.forEach(item => {
-                const card = document.createElement('div');
-                card.className = "bg-white rounded-xl border border-slate-200/60 shadow-sm overflow-hidden flex flex-col relative";
-                
-                const isWarning = item.rebalanceStatus !== "정상" && item.rebalanceStatus !== "";
-                const targetWeight = item.targetWeight ? `${(item.targetWeight * 100).toFixed(1)}%` : '미지정';
-                const currentWeight = item.currentWeight ? `${(item.currentWeight * 100).toFixed(1)}%` : '0.0%';
+                const isWarning = item.rebalanceStatus && item.rebalanceStatus !== '정상' && item.rebalanceStatus !== '';
 
+                // targetWeight / currentWeight: GAS가 소수 또는 %로 줄 수 있으므로 정규화
+                const tw = item.targetWeight  ? (Math.abs(item.targetWeight)  < 1 ? item.targetWeight  * 100 : item.targetWeight)  : null;
+                const cw = item.currentWeight ? (Math.abs(item.currentWeight) < 1 ? item.currentWeight * 100 : item.currentWeight) : null;
+                const twStr = tw != null ? tw.toFixed(1) + '%' : '미지정';
+                const cwStr = cw != null ? cw.toFixed(1) + '%' : '0.0%';
+
+                const card = document.createElement('div');
+                card.className = `bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col relative ${isWarning ? 'border-rose-200 bg-rose-50/20' : 'border-slate-200/60'}`;
+
+                // 리밸런싱 배너 (카드 상단 통합 — 이전 버전 스타일)
                 if (isWarning) {
-                    card.classList.add('border-rose-200', 'bg-rose-50/[0.15]');
-                    card.innerHTML = `
-                        <div class="bg-rose-500 text-white text-[9px] font-black px-3 py-0.5 flex items-center justify-between tracking-wide">
-                            <span><i class="fa-solid : fa-triangle-exclamation mr-1"></i>비중 조정 필요</span>
-                            <span class="text-[8px] bg-white/20 px-1 rounded">목표: ${targetWeight} / 현재: ${currentWeight}</span>
-                        </div>`;
+                    const banner = document.createElement('div');
+                    banner.className = 'bg-amber-400 text-amber-900 text-[9px] font-black px-3 py-0.5 flex items-center justify-between tracking-wide';
+                    banner.innerHTML = `
+                        <span><i class="fa-solid fa-triangle-exclamation mr-1"></i>리밸런싱 필요</span>
+                        <span class="text-[8px] bg-amber-900/10 px-1 rounded">목표 ${twStr} / 현재 ${cwStr}</span>`;
+                    card.appendChild(banner);
                 }
 
-                const mainContent = document.createElement('div');
-                mainContent.className = "px-4 py-2.5 flex items-center justify-between gap-3";
-                mainContent.innerHTML = `
+                const body = document.createElement('div');
+                body.className = 'px-4 py-2.5 flex items-center justify-between gap-3';
+                body.innerHTML = `
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-1.5 mb-0.5">
                             <span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 uppercase">${item.category}</span>
                             <span class="font-bold text-slate-900 text-[13px] truncate">${item.name}</span>
                         </div>
                         <div class="text-[11px] text-slate-400 font-semibold tabular-nums">
-                            ${formatCurrency(item.evalAmt)}
-                            ${!isWarning ? `<span class="text-[10px] text-slate-300 ml-1.5 font-normal">(목표 ${targetWeight})</span>` : ''}
+                            ${fmtWon(item.evalAmt)}
+                            <span class="text-[10px] text-slate-300 ml-1 font-normal">(목표 ${twStr})</span>
                         </div>
                     </div>
                     <div class="text-right tabular-nums shrink-0">
-                        <div class="${getRateColor(item.currentRate)} font-bold text-[13px] tracking-tight">${formatRate(item.currentRate)}</div>
-                        <div class="${getRateColor(item.cumulativeRate)} text-[10px] font-bold opacity-75 mt-0.5">${formatRate(item.cumulativeRate)}</div>
-                    </div>
-                `;
-                
-                card.appendChild(mainContent);
+                        <div class="${rateColorCard(item.currentRate)} font-bold text-[13px] tracking-tight">${fmtRate(item.currentRate)}</div>
+                        <div class="${rateColorCard(item.cumulativeRate)} text-[10px] font-bold opacity-75 mt-0.5">${fmtRate(item.cumulativeRate)}</div>
+                    </div>`;
+
+                card.appendChild(body);
                 container.appendChild(card);
             });
         }
 
+        /* ── 초기 로드 (자동 갱신 없음 — 수동 버튼 사용) ── */
         window.onload = function() {
             switchTab('dc');
-            setInterval(fetchData, 60000);
+            // 자동 갱신 완전 제거: 필요시 아래 주석 해제 (단위: ms)
+            // autoRefreshTimer = setInterval(fetchData, 300000);
         };
     </script>
 </body>
