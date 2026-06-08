@@ -113,12 +113,11 @@
     </div>
 
     <script>
-        // 상단에 기입해두셨던 진짜 구글 웹앱 URL 주소입니다. (그대로 유지)
         const dcGasUrl = "https://script.google.com/macros/s/AKfycby8XB0dOwk5Tw7yUmQMiv0RfGOeYOjD_1uUcTA-rUYdc4YDoNME46GEK4ZhaxZ0b8hO/exec";
         const isaGasUrl = "https://script.google.com/macros/s/AKfycbxW7zkcTspkQKcUFJrzydqh1gbLaUmQFUraHXeSXke3TC-y4xmjXoZ2F0g8Bq743QTA/exec";
 
-        // 암호 핑거프린트
-        const targetToken = "p_58e2bf6563c7";
+        // PIN 050426 의 해시값
+        const targetToken = "p_e2417c74";
 
         let inputPin = "";
         let allRawData = { dc: null, isa: null }; 
@@ -242,7 +241,7 @@
                 allRawData[currentTab] = res;
                 renderData(res);
                 if(btn) { btn.innerHTML = '<i class="fa-solid fa-rotate-right text-slate-300 text-[13px]"></i>'; btn.disabled = false; }
-                delete window[callbackName]; // ✨ 오타 수정 완료: callbackName으로 정상 제거
+                delete window[callbackName];
                 document.getElementById(callbackName).remove();
             };
 
