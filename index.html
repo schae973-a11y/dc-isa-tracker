@@ -19,7 +19,7 @@
         @keyframes pulse-border { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         .warn-pulse { animation: pulse-border 1.8s ease-in-out infinite; }
         
-        /* PIN 키패드 전용 스타일 */
+        /* PIN 키패드 스타일 */
         .pin-dot { width: 12px; height: 12px; border-radius: 50%; background-color: #cbd5e1; transition: all 0.1s; }
         .pin-dot.active { background-color: #1e293b; transform: scale(1.2); }
         .key-btn { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 50%; width: 60px; height: 60px; font-size: 20px; font-weight: bold; color: #0f172a; display: flex; align-items: center; justify-content: center; transition: all 0.1s; -webkit-tap-highlight-color: transparent; }
@@ -113,11 +113,11 @@
     </div>
 
     <script>
-        // ⚠️ 각 시트별 새로 배포된 구글 웹앱 URL 주소를 여기에 넣어주세요!
+        // ⚠️ 여기에 구글 앱스 스크립트 웹앱 배포 URL(exec로 끝나는 주소)을 반드시 쌍따옴표 안에 채워주세요!
         const dcGasUrl = "https://script.google.com/macros/s/AKfycby8XB0dOwk5Tw7yUmQMiv0RfGOeYOjD_1uUcTA-rUYdc4YDoNME46GEK4ZhaxZ0b8hO/exec";
         const isaGasUrl = "https://script.google.com/macros/s/AKfycbxW7zkcTspkQKcUFJrzydqh1gbLaUmQFUraHXeSXke3TC-y4xmjXoZ2F0g8Bq743QTA/exec";
 
-        // 🌟 오류 없는 확실한 비교용 암호 핑거프린트입니다
+        // 직관적이고 확실한 문정합성 토큰 비교 방식
         const targetToken = "p_58e2bf6563c7";
 
         let inputPin = "";
@@ -126,7 +126,7 @@
         let currentSortType = 'default';
         let isAscending = false;
 
-        // 로컬 스토리지를 확인하여 자동 로그인 세션 처리
+        // 실행 시 자동 로그인 판단
         window.onload = function() {
             const savedToken = localStorage.getItem('dashboard_auth_token');
             if (savedToken === targetToken) {
@@ -134,7 +134,6 @@
             }
         };
 
-        // 오차 없는 고속 해싱 함수
         function simpleHash(str) {
             let h = 1729;
             for (let i = 0; i < str.length; i++) {
@@ -147,7 +146,10 @@
             if (inputPin.length >= 6) return;
             inputPin += num;
             updatePinDots();
-            if (inputPin.length === 6) { verifyPin(); }
+            if (inputPin.length === 6) { 
+                // 6자리가 차면 0.1초 딜레이를 주어 마지막 점이 찍히는 UX를 보여준 후 검증
+                setTimeout(verifyPin, 100); 
+            }
         }
 
         function backspacePin() {
@@ -193,7 +195,7 @@
             fetchCurrentTabData();
         }
 
-        /* 데이터 처리 및 렌더링 함수군 */
+        /* 📊 데이터 파싱 및 정렬 로직 */
         function formatCurrency(val) { return '₩' + Math.round(Number(val)).toLocaleString('ko-KR'); }
         function getPercentDetails(val) {
             const num = parseFloat(val) || 0;
@@ -223,20 +225,28 @@
 
         function fetchCurrentTabData() {
             const btn = document.getElementById('refresh-btn');
-            if(!btn) return;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-slate-300 text-[13px]"></i>';
-            btn.disabled = true;
+            if(btn) {
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-slate-300 text-[13px]"></i>';
+                btn.disabled = true;
+            }
             document.getElementById('update-time').innerText = "업데이트 중...";
             
             const targetUrl = currentTab === 'dc' ? dcGasUrl : isaGasUrl;
+            
+            // 만약 구글 주소가 세팅되어 있지 않다면 경고 텍스트를 출력하고 데이터 렌더링 스킵
+            if (!targetUrl || targetUrl.includes("YOUR_")) {
+                document.getElementById('update-time').innerText = "구글 URL 미설정";
+                if(btn) { btn.innerHTML = '<i class="fa-solid fa-rotate-right text-slate-300 text-[13px]"></i>'; btn.disabled = false; }
+                return;
+            }
+
             const callbackName = 'jsonpCallback_' + currentTab + '_' + Math.round(100000 * Math.random());
             
             window[callbackName] = function(res) {
                 allRawData[currentTab] = res;
                 renderData(res);
-                btn.innerHTML = '<i class="fa-solid fa-rotate-right text-slate-300 text-[13px]"></i>';
-                btn.disabled = false;
-                delete window[callbackName];
+                if(btn) { btn.innerHTML = '<i class="fa-solid fa-rotate-right text-slate-300 text-[13px]"></i>'; btn.disabled = false; }
+                delete window[windowName];
                 document.getElementById(callbackName).remove();
             };
 
@@ -244,9 +254,9 @@
             script.id = callbackName;
             script.src = targetUrl + (targetUrl.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName + '&_ts=' + new Date().getTime();
             script.onerror = function() {
-                btn.innerHTML = '<i class="fa-solid fa-exclamation-circle text-rose-400 text-[13px]"></i>';
+                if(btn) btn.innerHTML = '<i class="fa-solid fa-exclamation-circle text-rose-400 text-[13px]"></i>';
                 document.getElementById('update-time').innerText = "통신 오류";
-                setTimeout(() => { btn.innerHTML = '<i class="fa-solid fa-rotate-right text-slate-300 text-[13px]"></i>'; btn.disabled = false; }, 2000);
+                setTimeout(() => { if(btn) { btn.innerHTML = '<i class="fa-solid fa-rotate-right text-slate-300 text-[13px]"></i>'; btn.disabled = false; } }, 2000);
             };
             document.body.appendChild(script);
         }
@@ -257,7 +267,6 @@
                 document.getElementById('total-profit-amt').innerText = "₩0";
                 document.getElementById('total-profit-rate').innerText = "0.00%";
                 document.getElementById('item-count').innerText = "0";
-                document.getElementById('ticker-list').innerHTML = '<p class="text-center text-slate-400 text-[12px] pt-4">데이터 로드 실패</p>';
                 return;
             }
             document.getElementById('total-eval').innerText = formatCurrency(tabData.summary.totalEval);
