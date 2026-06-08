@@ -144,7 +144,10 @@
             // UI 개선: 상단 요약 변동 영역에 명확한 기호 배정 및 부호 포맷팅 적용
             const yesterday = data.summary.totalEval_yesterday || data.summary.totalEval;
             const diffAmt = data.summary.totalEval - yesterday;
-            const diffRate = yesterday > 0 ? (diffAmt / yesterday) * 100 : 0;
+            // const diffRate = yesterday > 0 ? (diffAmt / yesterday) * 100 : 0;
+            // 변경: 분모가 0이거나 NaN이 되는 구조를 완벽 차단
+            const diffRate = (yesterday > 0 && !isNaN(yesterday)) ? (diffAmt / yesterday) * 100 : 0;
+       
             
             let changeEl = document.getElementById('day-change');
             if (diffAmt > 0) {
