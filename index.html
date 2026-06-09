@@ -48,7 +48,6 @@
             background: var(--bg-page);
             font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", sans-serif;
             -webkit-font-smoothing: antialiased;
-            /* 모바일 브라우저 기본 pull-to-refresh 및 바운스 효과 제어 */
             overscroll-behavior-y: contain;
         }
 
@@ -337,7 +336,7 @@
 <body>
 
 <div id="ptr-indicator">
-    <i id="ptr-icon" class="fa-solid fa-arrow-down"></i>
+    <i id="ptr-icon" class="fa-solid fa-arrow-down" style="transition: transform 0.15s ease;"></i>
     <span id="ptr-text">당겨서 새로고침</span>
 </div>
 
@@ -426,11 +425,10 @@
     let inputPin = "", allRawData = { dc: null, isa: null };
     let currentTab = 'dc', currentSortType = 'default', isAscending = false;
 
-    // 스와이프 및 Pull to Refresh 하드웨어 가속용 터치 변수
+    // 스와이프 및 Pull to Refresh 제어용 변수
     let startX = 0, startY = 0;
-    let currentY = 0;
     let isPulling = false;
-    const ptrThreshold = 80; // 당겨서 새로고침 트리거 기준 높이 (px)
+    const ptrThreshold = 80; 
 
     window.onload = () => {
         if (localStorage.getItem('dashboard_auth_token') === targetToken) unlockDashboard();
@@ -654,7 +652,6 @@
         const ptrText = document.getElementById('ptr-text');
 
         window.addEventListener('touchstart', (e) => {
-            // 보안 인증 화면이 활성화된 상태라면 스와이프를 제한함
             if (dashboard.style.display === 'none') return;
 
             startX = e.touches[0].clientX;
@@ -666,31 +663,28 @@
             if (dashboard.style.display === 'none') return;
 
             const moveX = e.touches[0].clientX;
-            currentY = e.touches[0].clientY;
+            const currentY = e.touches[0].clientY;
 
             const diffX = moveX - startX;
             const diffY = currentY - startY;
 
-            // 1. Pull-to-Refresh 제어 (세로 스크롤이 하향이고 종목 리스트가 최상단에 고정되어 있을 때)
-            if (diffY > 0 && listWrapper.scrollTop === 0) {
-                // 가로 이동보다 세로 이동의 진폭이 큰 경우에만 당기기 시작함
+            // Pull-to-Refresh 트리거 조건 (리스트 스크롤이 맨 위에 있을 때)
+            if (diffY > 0 && listWrapper.scrollTop <= 0) {
                 if (Math.abs(diffY) > Math.abs(diffX)) {
                     isPulling = true;
-                    // 당길 때 스무스한 마찰 저항(가속도 감쇄) 공식 적용
                     const pullDistance = Math.min(diffY * 0.4, 110);
                     
                     dashboard.style.transform = `translateY(${pullDistance}px)`;
                     ptrIndicator.style.transform = `translateY(${pullDistance}px)`;
 
                     if (pullDistance >= ptrThreshold) {
-                        ptrIcon.className = "fa-solid fa-arrow-up rotate-180 transition-transform duration-150";
+                        ptrIcon.style.transform = 'rotate(180deg)';
                         ptrText.innerText = "놓아서 새로고침";
                     } else {
-                        ptrIcon.className = "fa-solid fa-arrow-down transition-transform duration-150";
+                        ptrIcon.style.transform = 'rotate(0deg)';
                         ptrText.innerText = "당겨서 새로고침";
                     }
                     
-                    // 기본 브라우저 바운스 이벤트 무력화
                     if (e.cancelable) e.preventDefault();
                 }
             }
@@ -705,11 +699,11 @@
             const diffX = endX - startX;
             const diffY = endY - startY;
 
-            // 1. Pull-to-Refresh 리셋 및 트리거 판정
             if (isPulling) {
                 isPulling = false;
                 dashboard.style.transform = '';
                 ptrIndicator.style.transform = '';
+                ptrIcon.style.transform = '';
                 
                 const finalPullDistance = Math.min(diffY * 0.4, 110);
                 if (finalPullDistance >= ptrThreshold) {
@@ -718,13 +712,11 @@
                 return;
             }
 
-            // 2. 좌/우 스와이프 탭 내비게이션 판정 (세로축 이동 흔들림 변수 최소화 필터링 포함)
+            // 좌우 스와이프 내비게이션 판정
             if (Math.abs(diffX) > 70 && Math.abs(diffY) < 40) {
                 if (diffX > 0) {
-                    // 오른쪽으로 밀었을 때 -> 이전 탭(dc)으로 이동
                     if (currentTab === 'isa') switchTab('dc');
                 } else {
-                    // 왼쪽으로 밀었을 때 -> 다음 탭(isa)으로 이동
                     if (currentTab === 'dc') switchTab('isa');
                 }
             }
