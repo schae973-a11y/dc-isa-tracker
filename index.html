@@ -393,105 +393,120 @@
         }
     }
 
-    /* ── 📈 실데이터 전용 정적 차트 렌더러 (날짜 매핑 및 끊김 보정 로직 내장) ── */
     function renderTrendChart(chartData) {
-        const ctx = document.getElementById('trendChart').getContext('2d');
+    const ctx = document.getElementById('trendChart').getContext('2d');
+    
+    // [핵심 수정] 연도에 상관없이 월-일(MM-dd) 4자리 숫자만 안전하게 추출하는 함수
+    const cleanToMonthDay = (dateIn) => {
+        if (!dateIn) return '';
+        // 하이픈, 점 등 기호를 모두 제거하고 순수 숫자만 추출
+        const pureNums = String(dateIn).trim().split(' ')[0].replace(/[^0-9]/g, ''); 
+        // 뒤에서부터 4자리(MMDD)만 잘라내어 반환 (20260504 -> 0504 / 0504 -> 0504)
+        return pureNums.length >= 4 ? pureNums.slice(-4) : pureNums;
+    };
+
+    const labels = chartData.myAsset.map(item => item.date);
+    const baseMyAsset = chartData.myAsset[0].total || 1;
+    const myAssetRates = chartData.myAsset.map(item => ((item.total - baseMyAsset) / baseMyAsset) * 100);
+    
+    let sp500Rates = [];
+    if (chartData.sp500 && chartData.sp500.length > 0) {
+        // 내 자산의 첫날(MMDD)과 일치하는 S&P500 기준점 매칭
+        const firstAssetDateKey = cleanToMonthDay(chartData.myAsset[0].date);
+        const firstMatchSp = chartData.sp500.find(sp => cleanToMonthDay(sp.date) === firstAssetDateKey);
         
-        // 1. x축은 매일 누적되는 '내 자산' 날짜를 기준으로 고정
-        const labels = chartData.myAsset.map(item => item.date);
-        const baseMyAsset = chartData.myAsset[0].total || 1;
-        const myAssetRates = chartData.myAsset.map(item => ((item.total - baseMyAsset) / baseMyAsset) * 100);
+        // 기준점 주가 설정 (매칭 실패 시 S&P500 배열의 첫 번째 값 사용)
+        const baseSp500 = firstMatchSp ? (firstMatchSp.value || 1) : (chartData.sp500[0].value || 1);
         
-        // 2. S&P500 데이터를 내 자산 날짜에 맞춰 동기화 (주말/휴장일 끊김 방지 자동 패딩)
-        let sp500Rates = [];
-        if (chartData.sp500 && chartData.sp500.length > 0) {
-            const baseSp500 = chartData.sp500[0].value || 1;
-            let lastValidRate = 0; // 미국 주식 시장이 닫혔을 때 사용할 직전 영업일의 수익률 데이터
+        let lastValidRate = 0; // 휴일 보간용 변수
 
-            sp500Rates = chartData.myAsset.map(assetItem => {
-                // 내 자산 날짜의 자수 포맷과 S&P500의 날짜 포맷을 1:1 비교 매칭
-                const match = chartData.sp500.find(spItem => {
-                    const spDate = spItem.date ? spItem.date.split(' ')[0] : '';
-                    const asDate = assetItem.date ? assetItem.date.split(' ')[0] : '';
-                    return spDate === asDate;
-                });
+        sp500Rates = chartData.myAsset.map((assetItem, index) => {
+            const targetKey = cleanToMonthDay(assetItem.date);
+            const match = chartData.sp500.find(spItem => cleanToMonthDay(spItem.date) === targetKey);
 
-                if (match) {
-                    lastValidRate = ((match.value - baseSp500) / baseSp500) * 100;
-                    return lastValidRate;
-                } else {
-                    // 주말이거나 미국 공휴일이라 S&P500 데이터가 없으면 직전 영업일의 수익률 선을 부드럽게 유지
-                    return lastValidRate;
-                }
-            });
-        }
+            if (match) {
+                // 정상적인 분모(baseSp500) 체계 위에서 상대수익률(%) 계산
+                lastValidRate = ((match.value - baseSp500) / baseSp500) * 100;
+                return lastValidRate;
+            } else {
+                // 첫날 매칭 공백 시 0% 출발, 주말/휴일은 직전 영업일의 수익률 선을 그대로 이어붙임(보간)
+                return index === 0 ? 0 : lastValidRate; 
+            }
+        });
+    } else {
+        sp500Rates = new Array(labels.length).fill(0);
+    }
 
-        if (trendChart) trendChart.destroy();
+    // 기존 차트 객체 파괴 (잔상 제거 버그 방지)
+    if (trendChart) {
+        trendChart.destroy();
+        trendChart = null;
+    }
 
-        Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", sans-serif';
+    Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", sans-serif';
 
-        const gradient = ctx.createLinearGradient(0, 0, 0, 140);
-        gradient.addColorStop(0, 'rgba(46, 125, 50, 0.12)'); 
-        gradient.addColorStop(1, 'rgba(232, 245, 233, 0.01)'); 
+    const gradient = ctx.createLinearGradient(0, 0, 0, 140);
+    gradient.addColorStop(0, 'rgba(46, 125, 50, 0.12)'); 
+    gradient.addColorStop(1, 'rgba(232, 245, 233, 0.01)'); 
 
-        trendChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        data: myAssetRates,
-                        borderColor: '#2E7D32',      
-                        borderWidth: 3,              
-                        backgroundColor: gradient,   
-                        fill: true,                  
-                        pointRadius: 0,
-                        tension: 0.25
-                    },
-                    {
-                        data: sp500Rates,
-                        borderColor: '#1565C0',      
-                        borderWidth: 1.2,            
-                        borderDash: [5, 4],          
-                        pointRadius: 0,
-                        tension: 0.25,
-                        fill: false
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                events: [], 
-                plugins: {
-                    legend: { display: false },
-                    tooltip: { enabled: false }
+    trendChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    data: myAssetRates,
+                    borderColor: '#2E7D32',      
+                    borderWidth: 3,              
+                    backgroundColor: gradient,   
+                    fill: true,                  
+                    pointRadius: 0,
+                    tension: 0.25
                 },
-                scales: {
-                    x: {
-                        grid: { display: false },
-                        ticks: {
-                            font: { size: 10, weight: '500' },
-                            color: '#7A927E',                  
-                            maxTicksLimit: 5,
-                            maxRotation: 0,
-                            minRotation: 0
-                        }
-                    },
-                    y: {
-                        grid: { color: 'rgba(46, 125, 50, 0.05)', drawTicks: false },
-                        border: { display: false },
-                        ticks: {
-                            font: { size: 10, weight: '500' },
-                            color: '#7A927E',                  
-                            padding: 4,
-                            callback: function(value) { return (value >= 0 ? '+' : '') + value.toFixed(1) + '%'; }
-                        }
+                {
+                    data: sp500Rates,
+                    borderColor: '#1565C0',      
+                    borderWidth: 1.2,            
+                    borderDash: [5, 4],          
+                    pointRadius: 0,
+                    tension: 0.25,
+                    fill: false
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            events: [], 
+            plugins: {
+                legend: { display: false },
+                tooltip: { enabled: false }
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: {
+                        font: { size: 10, weight: '500' },
+                        color: '#7A927E',                  
+                        maxTicksLimit: 5,
+                        maxRotation: 0,
+                        minRotation: 0
+                    }
+                },
+                y: {
+                    grid: { color: 'rgba(46, 125, 50, 0.05)', drawTicks: false },
+                    border: { display: false },
+                    ticks: {
+                        font: { size: 10, weight: '500' },
+                        color: '#7A927E',                  
+                        padding: 4,
+                        callback: function(value) { return (value >= 0 ? '+' : '') + value.toFixed(1) + '%'; }
                     }
                 }
             }
-        });
-    }
+        }
+    });
+}
 
     function resetSortUI() {
         currentSortType = 'default'; isAscending = false;
