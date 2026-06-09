@@ -12,32 +12,32 @@
     <style>
         :root {
             /* ── 녹색 계열 파스텔톤 테마 (Light Bloomberg Style) ── */
-            --bg-page:    #F2F9F6;   /* 전체 페이지 배경 */
-            --bg-card:    #FFFFFF;   /* 서머리 카드 배경 */
-            --bg-list:    #FFFFFF;   /* 종목 영역 배경 */
-            --bg-ticker:  #FFFFFF;   /* 종목 카드 배경 */
-            --bg-ticker-warn: rgba(245, 158, 11, 0.05); /* 리밸런싱 종목 배경 */
+            --bg-page:           #F2F9F6;   /* 전체 페이지 배경 */
+            --bg-card:           #FFFFFF;   /* 서머리 카드 배경 */
+            --bg-list:           #FFFFFF;   /* 종목 영역 배경 */
+            --bg-ticker:         #FFFFFF;   /* 종목 카드 배경 */
+            --bg-ticker-warn:    rgba(245, 158, 11, 0.05); /* 리밸런싱 종목 배경 */
 
             /* 금융 앱 컬러 체계 */
-            --c-up:       #D32F2F;   /* 양수 수익률 */
-            --c-up-sub:   #E53935;
-            --c-down:     #1565C0;   /* 음수 수익률 */
-            --c-down-sub: #1E88E5;
-            --c-neutral:  #78909C;   /* 보합/평균 */
+            --c-up:              #D32F2F;   /* 양수 수익률 */
+            --c-up-sub:          #E53935;
+            --c-down:            #1565C0;   /* 음수 수익률 */
+            --c-down-sub:        #1E88E5;
+            --c-neutral:         #78909C;   /* 보합/평균 */
 
             /* 메인 및 포인트 테마 컬러 */
-            --primary-green: #2E7D32;       /* 블룸버그 그린 */
-            --accent-mint:   #E8F5E9;       /* 연한 민트 파스텔 */
+            --primary-green:     #2E7D32;   /* 블룸버그 그린 */
+            --accent-mint:       #E8F5E9;   /* 연한 민트 파스텔 */
             
             /* 텍스트 및 경계선 */
-            --c-text-primary:   #1A2519;    /* 딥 그린 블랙 */
-            --c-text-secondary: #4E6551;    /* 부제목 */
-            --c-text-label:     #7A927E;    /* 라벨 */
-            --c-border:         #E0EBE2;    /* 파스텔톤 경계선 */
-            --c-divider:        #ECF2EE;    /* 내부 구분선 */
+            --c-text-primary:    #1A2519;   /* 딥 그린 블랙 */
+            --c-text-secondary:  #4E6551;   /* 부제목 */
+            --c-text-label:      #7A927E;   /* 라벨 */
+            --c-border:          #E0EBE2;   /* 파스텔톤 경계선 */
+            --c-divider:         #ECF2EE;   /* 내부 구분선 */
 
             /* 스켈레톤 로딩 색상 */
-            --skeleton-base:      #E8F0EA;  
+            --skeleton-base:      #E8F0EA;
             --skeleton-highlight: #F4F8F5;  
         }
 
@@ -143,7 +143,8 @@
             border-radius: 4px;
         }
         .refresh-btn {
-            width: 26px; height: 26px;
+            width: 26px;
+            height: 26px;
             display: flex; align-items: center; justify-content: center;
             color: var(--c-text-secondary);
             background: var(--bg-page); border: none; cursor: pointer;
@@ -201,13 +202,13 @@
             background: var(--bg-card);
             border-radius: 16px;
             border: 1px solid var(--c-border);
-            padding: 12px 14px;
+            padding: 14px 16px; /* 모바일 여백 최적화 */
             box-shadow: 0 4px 20px rgba(46, 125, 50, 0.03);
         }
         .chart-container {
             position: relative;
             width: 100%;
-            height: 130px; /* 세로 스크롤 압박 최소화 크기 */
+            height: 135px; /* 균형 잡힌 높이 조절 */
         }
 
         /* ── 종목 스크롤 영역 ── */
@@ -246,7 +247,8 @@
             border: 1px solid var(--c-border);
         }
         .sort-btn {
-            font-size: 11px; font-weight: 600;
+            font-size: 11px;
+            font-weight: 600;
             color: var(--c-text-secondary);
             padding: 3px 10px;
             border-radius: 6px;
@@ -287,7 +289,8 @@
 
         /* ── PIN 인증 화면 ── */
         #auth-screen {
-            position: fixed; inset: 0; z-index: 50;
+            position: fixed;
+            inset: 0; z-index: 50;
             background: var(--bg-page);
             display: flex; flex-direction: column;
             justify-content: center; align-items: center;
@@ -299,17 +302,20 @@
             border-radius: 24px;
             border: 1px solid var(--c-border);
             box-shadow: 0 10px 30px rgba(46, 125, 50, 0.06);
-            width: 100%; max-width: 300px;
+            width: 100%;
+            max-width: 300px;
             text-align: center;
         }
         .pin-dot {
-            width: 12px; height: 12px; border-radius: 50%;
+            width: 12px;
+            height: 12px; border-radius: 50%;
             background: #E0EBE2; display: inline-block;
             transition: all 0.15s;
         }
         .pin-dot.active { background: var(--primary-green); transform: scale(1.2); }
         .key-btn {
-            width: 60px; height: 60px;
+            width: 60px;
+            height: 60px;
             display: flex; align-items: center; justify-content: center;
             font-size: 20px; font-weight: 600;
             border-radius: 50%;
@@ -404,7 +410,7 @@
             <div class="perf-row">
                 <div class="perf-block">
                     <span class="perf-label">당일 수익</span>
-                    <span id="diff-amt"  class="perf-amount neu-amt">₩0</span>
+                    <span id="diff-amt" class="perf-amount neu-amt">₩0</span>
                     <span id="diff-rate" class="perf-rate  neu-rate">0.00%</span>
                 </div>
                 <div class="divider-v"></div>
@@ -417,13 +423,13 @@
         </div>
 
         <div class="chart-card">
-            <div class="flex justify-between items-center mb-1.5">
+            <div class="flex justify-between items-center mb-2">
                 <span class="text-[11px] font-bold text-[#4E6551] flex items-center gap-1">
                     <i class="fa-solid fa-chart-line text-[#2E7D32]"></i> 30일 벤치마크 상대수익률 (%)
                 </span>
-                <div class="flex gap-2 text-[9px] font-semibold">
-                    <span class="flex items-center gap-1 text-[#2E7D32]"><span class="w-2 h-0.5 bg-[#2E7D32] inline-block"></span> 내 자산</span>
-                    <span class="flex items-center gap-1 text-[#42a5f5]"><span class="w-2 h-0.5 bg-[#42a5f5] inline-block"></span> S&P500 환산</span>
+                <div class="flex gap-2 text-[10px] font-bold">
+                    <span class="flex items-center gap-1 text-[#2E7D32]"><span class="w-2.5 h-0.5 bg-[#2E7D32] inline-block"></span> 내 자산</span>
+                    <span class="flex items-center gap-1 text-[#1565C0]"><span class="w-2.5 h-0.5 bg-[#1565C0] inline-block"></span> S&P500</span>
                 </div>
             </div>
             <div class="chart-container">
@@ -475,7 +481,8 @@
     }
     function pressKey(n) {
         if (inputPin.length < 6) {
-            inputPin += n; updatePinDots();
+            inputPin += n;
+            updatePinDots();
             if (inputPin.length === 6) setTimeout(verifyPin, 100);
         }
     }
@@ -500,8 +507,7 @@
 
     /* ── 탭 전환 개선 ── */
     function switchTab(t) {
-        if (currentTab === t) return; 
-        
+        if (currentTab === t) return;
         currentTab = t;
         document.getElementById('tab-dc').classList.toggle('active', t === 'dc');
         document.getElementById('tab-isa').classList.toggle('active', t === 'isa');
@@ -530,7 +536,6 @@
 
         const list = document.getElementById('ticker-list');
         list.innerHTML = '';
-        
         for (let i = 0; i < 4; i++) {
             const skCard = document.createElement('div');
             skCard.className = 'ticker-card';
@@ -560,7 +565,6 @@
         if (btn)  btn.disabled = true;
 
         renderSkeletonUI();
-
         const cb = 'cb_' + Date.now();
         window[cb] = (res) => {
             allRawData[currentTab] = res;
@@ -583,13 +587,16 @@
     /* ── 색상 매칭 헬퍼 ── */
     function applyPerfColor(amtEl, rateEl, amt, rate) {
         if (amt === 0) {
-            amtEl.className = 'perf-amount neu-amt';  amtEl.innerText = '₩0';
+            amtEl.className = 'perf-amount neu-amt';
+            amtEl.innerText = '₩0';
             rateEl.className = 'perf-rate neu-rate';  rateEl.innerText = '0.00%';
         } else if (amt > 0) {
-            amtEl.className = 'perf-amount up-amt';   amtEl.innerText = '+₩' + amt.toLocaleString();
+            amtEl.className = 'perf-amount up-amt';
+            amtEl.innerText = '+₩' + amt.toLocaleString();
             rateEl.className = 'perf-rate up-rate';   rateEl.innerText = '+' + rate.toFixed(2) + '%';
         } else {
-            amtEl.className = 'perf-amount dn-amt';   amtEl.innerText = '-₩' + Math.abs(amt).toLocaleString();
+            amtEl.className = 'perf-amount dn-amt';
+            amtEl.innerText = '-₩' + Math.abs(amt).toLocaleString();
             rateEl.className = 'perf-rate dn-rate';   rateEl.innerText = rate.toFixed(2) + '%';
         }
     }
@@ -620,7 +627,6 @@
     /* ── 📈 30일 누적 상대 수익률 변환 및 차트 생성 함수 ── */
     function renderTrendChart(chartData) {
         const ctx = document.getElementById('trendChart').getContext('2d');
-        
         // 데이터가 불완전한 경우 방어 처리
         if (!chartData.myAsset || chartData.myAsset.length === 0) return;
         
@@ -633,7 +639,6 @@
         
         let sp500Rates = [];
         if (chartData.sp500 && chartData.sp500.length > 0) {
-            // 자산 일자와 동일한 날짜의 S&P500 매칭 기점 찾기
             const baseSp500 = chartData.sp500[0].value || 1;
             sp500Rates = chartData.sp500.map(item => ((item.value - baseSp500) / baseSp500) * 100);
         }
@@ -641,7 +646,10 @@
         // 기존 차트 인스턴스 파괴 (메모리 누수 및 잔상 방지)
         if (trendChart) trendChart.destroy();
 
-        // 파스텔톤 경량 차트 빌드
+        // 글로벌 기본 폰트 패밀리 동기화
+        Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", sans-serif';
+
+        // 파스텔톤 경량 및 Grok 개선 피드백 반영 차트 빌드
         trendChart = new Chart(ctx, {
             type: 'line',
             data: {
@@ -650,21 +658,27 @@
                     {
                         label: '내 자산',
                         data: myAssetRates,
-                        borderColor: '#2E7D32', // 블룸버그 그린
-                        borderWidth: 2,
-                        pointRadius: 0,         // 모바일 가독성을 위해 포인트 제거
-                        pointHoverRadius: 4,
+                        borderColor: '#2E7D32', // --primary-green (블룸버그 그린)
+                        borderWidth: 2.5,       // 가독성을 위한 메인 라인 강조
+                        pointRadius: 0,         // 모바일 가독성을 위해 상시 포인트 제거
+                        pointHoverRadius: 5,    // 호버 인텐시티 강화
+                        pointBackgroundColor: '#2E7D32',
+                        pointBorderColor: '#FFFFFF',
+                        pointBorderWidth: 1.5,
                         tension: 0.2,           // 자연스러운 곡선
                         fill: false
                     },
                     {
                         label: 'S&P500 환산',
                         data: sp500Rates,
-                        borderColor: '#42a5f5', // 파스텔 블루
+                        borderColor: '#1565C0', // --c-down 스타일과 매칭되는 파스텔 블루 테마
                         borderWidth: 1.5,
-                        borderDash: [4, 4],     // 벤치마크는 점선 처리
+                        borderDash: [4, 4],     // 벤치마크 점선 대조 시각화
                         pointRadius: 0,
-                        pointHoverRadius: 4,
+                        pointHoverRadius: 5,
+                        pointBackgroundColor: '#1565C0',
+                        pointBorderColor: '#FFFFFF',
+                        pointBorderWidth: 1.5,
                         tension: 0.2,
                         fill: false
                     }
@@ -673,24 +687,69 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        top: 6,
+                        bottom: 0,
+                        left: 2,
+                        right: 2
+                    }
+                },
                 plugins: {
-                    legend: { display: false } // 상단 레전드는 커스텀 HTML 영역으로 대체
+                    legend: { display: false }, // 상단 레전드는 커스텀 HTML 영역으로 대체
+                    tooltip: {
+                        enabled: true,
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(26, 37, 25, 0.9)', // --c-text-primary 베이스의 딥 그린 블랙 투명도 적용
+                        titleColor: '#FFFFFF',
+                        bodyColor: '#E8F5E9',   // --accent-mint 베이스 텍스트
+                        bodyFont: { size: 11, weight: '600' },
+                        titleFont: { size: 10, weight: '400' },
+                        padding: 10,
+                        borderRadius: 8,
+                        borderColor: '#E0EBE2', // --c-border 테두리
+                        borderWidth: 1,
+                        displayColors: true,
+                        boxWidth: 8,
+                        boxHeight: 2,
+                        boxPadding: 4,
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) { label += ': '; }
+                                if (context.parsed.y !== null) {
+                                    label += (context.parsed.y >= 0 ? '+' : '') + context.parsed.y.toFixed(2) + '%';
+                                }
+                                return label;
+                            }
+                        }
+                    }
                 },
                 scales: {
                     x: {
                         grid: { display: false },
                         ticks: {
-                            font: { size: 9 },
-                            color: '#7A927E',
-                            maxTicksLimit: 5 // x축 라벨 조밀함 해소
+                            font: { size: 11, weight: '500' }, // 텍스트 크기 확대 및 디자인 세련화
+                            color: '#4E6551',                 // --c-text-secondary 스케일링 일치
+                            maxTicksLimit: 4,                  // x축 모바일 밀집도 해소 최적화
+                            maxRotation: 0,
+                            minRotation: 0
                         }
                     },
                     y: {
-                        grid: { color: '#ECF2EE' },
+                        grid: { 
+                            color: '#ECF2EE', // --c-divider 컬러 매칭 가로 가이드 라인
+                            drawTicks: false
+                        },
+                        border: { display: false },
                         ticks: {
-                            font: { size: 9 },
-                            color: '#7A927E',
-                            callback: function(value) { return value.toFixed(1) + '%'; }
+                            font: { size: 11, weight: '500' }, // 가독성 축소 방지
+                            color: '#4E6551',                 // 축 라벨 전계열 동기화
+                            padding: 6,
+                            callback: function(value) { 
+                                return (value >= 0 ? '+' : '') + value.toFixed(1) + '%'; // 부호 및 % 포맷팅 명확화
+                            }
                         }
                     }
                 }
@@ -700,7 +759,8 @@
 
     /* ── 정렬 제어 ── */
     function resetSortUI() {
-        currentSortType = 'default'; isAscending = false;
+        currentSortType = 'default';
+        isAscending = false;
         document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('btn-sort-default').classList.add('active');
         document.getElementById('btn-sort-current').innerHTML    = '당일';
@@ -785,9 +845,8 @@
 
             const diffX = moveX - startX;
             const diffY = currentY - startY;
-
             if (Math.abs(diffX) > 30 && Math.abs(diffY) < 50) {
-                if (e.cancelable) e.preventDefault();  // 수평 스와이프 방해 막기
+                if (e.cancelable) e.preventDefault();
             }
 
             // Pull-to-Refresh 트리거 조건 (리스트 스크롤이 맨 위에 있을 때)
@@ -798,7 +857,6 @@
                     
                     dashboard.style.transform = `translateY(${pullDistance}px)`;
                     ptrIndicator.style.transform = `translateY(${pullDistance}px)`;
-
                     if (pullDistance >= ptrThreshold) {
                         ptrIcon.style.transform = 'rotate(180deg)';
                         ptrText.innerText = "놓아서 새로고침";
@@ -834,8 +892,8 @@
                 return;
             }
 
-            /* ── [수정 완료] 좌우 스와이프 내비게이션 방향 교정 로직 ── */
-            if (Math.abs(diffX) > 60 && Math.abs(diffY) < 65) {  // ← 여기 완화
+            /* ── 좌우 스와이프 내비게이션 방향 교정 로직 ── */
+            if (Math.abs(diffX) > 60 && Math.abs(diffY) < 65) {
                 if (diffX < -60) {           // 왼쪽으로 스와이프 (다음 탭)
                     if (currentTab === 'dc') switchTab('isa');
                 } else if (diffX > 60) {     // 오른쪽으로 스와이프 (이전 탭)
