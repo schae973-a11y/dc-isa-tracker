@@ -307,7 +307,6 @@
         }
 
         /* 각 요소별 스켈레톤 크기 지정 및 최적화 */
-        .sk-title { width: 120px; height: 30px; display: inline-block; }
         .sk-amt   { width: 160px; height: 32px; display: inline-block; margin-top: 2px; }
         .sk-p-amt { width: 90px; height: 20px; display: inline-block; }
         .sk-p-rt  { width: 50px; height: 14px; display: inline-block; margin-top: 4px; }
@@ -449,7 +448,7 @@
 
     /* ── 탭 전환 개선 (즉각적 스켈레톤 적용) ── */
     function switchTab(t) {
-        if (currentTab === t) return; // 같은 탭 클릭 시 무시
+        if (currentTab === t) return; 
         
         currentTab = t;
         document.getElementById('tab-dc').classList.toggle('active', t === 'dc');
@@ -458,11 +457,8 @@
         
         resetSortUI();
         
-        // 캐시 데이터가 있더라도 데이터 교체의 자연스러움을 보여주거나 새로운 페칭 유도를 위해 
-        // 탭이 바뀌는 즉시 스켈레톤 로딩 상태 UI로 먼저 밀어버림으로써 버벅임 현상을 파괴합니다.
         if (allRawData[t]) {
             renderSkeletonUI();
-            // 미세한 타임아웃을 주어 스켈레톤이 완전히 인지된 후 렌더링되게 하여 시각적 전환 극대화
             setTimeout(() => {
                 if (currentTab === t) renderData(allRawData[t]);
             }, 120);
@@ -473,7 +469,6 @@
 
     /* ── 스켈레톤 플레이스홀더 렌더러 ── */
     function renderSkeletonUI() {
-        // 상단 요약 카드 스켈레톤 입히기
         document.getElementById('total-eval').innerHTML = `<span class="skeleton-loading-text sk-amt"></span>`;
         
         document.getElementById('diff-amt').innerHTML = `<span class="skeleton-loading-text sk-p-amt"></span>`;
@@ -484,7 +479,6 @@
         
         document.getElementById('item-count').innerText = '-';
 
-        // 하단 종목 리스트 스켈레톤 플레이스홀더 4개 생성
         const list = document.getElementById('ticker-list');
         list.innerHTML = '';
         
@@ -517,7 +511,6 @@
         if (icon) icon.classList.add('fa-spin');
         if (btn)  btn.disabled = true;
 
-        // 데이터를 요청하기 직전 즉각 스켈레톤을 렌더링하여 부자연스러운 멈춤현상 방지
         renderSkeletonUI();
 
         const cb = 'cb_' + Date.now();
