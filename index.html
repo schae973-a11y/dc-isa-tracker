@@ -617,6 +617,26 @@
         );
         document.getElementById('item-count').innerText = data.items.length;
         renderList(data.items);
+
+        // [임시 테스트용 더미 데이터] 차트 디자인 변화 확인용
+    const dummyChart = {
+        myAsset: [
+            { date: '05-10', total: 100 },
+            { date: '05-15', total: 102 },
+            { date: '05-20', total: 101 },
+            { date: '05-25', total: 105 },
+            { date: '06-01', total: 104 },
+            { date: '06-10', total: 108 }
+        ],
+        sp500: [
+            { date: '05-10', value: 100 },
+            { date: '05-15', value: 101 },
+            { date: '05-20', value: 103 },
+            { date: '05-25', value: 102 },
+            { date: '06-01', value: 104 },
+            { date: '06-10', value: 106 }
+        ]
+    };
         
         // 📈 차트 데이터가 존재할 때 차트 렌더링 엔진 호출
         if (data.chart) {
