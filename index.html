@@ -9,67 +9,80 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background-color: #f8fafc !important; font-family: -apple-system, sans-serif; }
+        body { background-color: #f4f6f9 !important; font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif; -webkit-font-smoothing: antialiased; }
         .tabular-nums { font-variant-numeric: tabular-nums; }
         .flip5-container { max-width: 360px; margin: 0 auto; min-height: 100vh; }
-        .nav-tab { color: #94a3b8; border-bottom: 2px solid transparent; transition: all 0.2s; }
-        .nav-tab.active { color: #0f172a; border-bottom: 2px solid #0f172a; font-weight: 800; }
-        .sort-btn { color: #94a3b8; transition: all 0.2s; }
-        .sort-btn.active { background-color: #e2e8f0; color: #0f172a; font-weight: 800; }
-        .pin-dot { width: 10px; height: 10px; border-radius: 50%; background-color: #e2e8f0; transition: all 0.2s; }
-        .pin-dot.active { background-color: #334155; }
-        .key-btn { width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; font-weight: 600; border-radius: 50%; background: #ffffff; border: 1px solid #f1f5f9; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        
+        /* 탭 메뉴: 하단 통 라인을 제거하고 금융 앱 스타일의 세련된 하단 언더바 라인으로 변경 */
+        .nav-tab { color: #9ca3b8; transition: all 0.2s; position: relative; font-weight: 500; }
+        .nav-tab.active { color: #111827; font-weight: 700; }
+        .nav-tab.active::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2.5px;
+            background-color: #111827;
+            border-radius: 2px;
+        }
+        
+        .sort-btn { color: #94a3b8; transition: all 0.2s; font-weight: 500; }
+        .sort-btn.active { background-color: #e5e7eb; color: #4b5563; font-weight: 700; }
+        .pin-dot { width: 12px; height: 12px; border-radius: 50%; background-color: #e2e8f0; transition: all 0.15s; }
+        .pin-dot.active { background-color: #334155; transform: scale(1.1); }
+        .key-btn { width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 600; border-radius: 50%; background: #ffffff; border: 1px solid #f1f5f9; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
         .key-btn:active { background: #f1f5f9; }
     </style>
 </head>
 <body>
 
     <div id="auth-screen" class="fixed inset-0 bg-slate-50 z-50 flex flex-col justify-center items-center px-6">
-        <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 w-full max-w-[340px] text-center">
-            <div class="mb-8"><i class="fa-solid fa-shield-halved text-slate-300 text-3xl"></i></div>
-            <h2 class="text-xl font-bold text-slate-900 mb-6">보안 인증</h2>
+        <div class="bg-white p-8 rounded-[28px] shadow-sm border border-slate-100 w-full max-w-[320px] text-center">
+            <div class="mb-6"><i class="fa-solid fa-shield-halved text-slate-300 text-3xl"></i></div>
+            <h2 class="text-lg font-bold text-slate-800 mb-6">보안 인증</h2>
             <div class="flex justify-center gap-3 mb-8">
                 <div class="pin-dot" id="dot-0"></div><div class="pin-dot" id="dot-1"></div><div class="pin-dot" id="dot-2"></div>
                 <div class="pin-dot" id="dot-3"></div><div class="pin-dot" id="dot-4"></div><div class="pin-dot" id="dot-5"></div>
             </div>
-            <div class="grid grid-cols-3 gap-y-4 gap-x-2 justify-items-center max-w-[240px] mx-auto mb-6">
+            <div class="grid grid-cols-3 gap-y-4 gap-x-2 justify-items-center max-w-[220px] mx-auto mb-6">
                 <button class="key-btn" onclick="pressKey('1')">1</button><button class="key-btn" onclick="pressKey('2')">2</button><button class="key-btn" onclick="pressKey('3')">3</button>
                 <button class="key-btn" onclick="pressKey('4')">4</button><button class="key-btn" onclick="pressKey('5')">5</button><button class="key-btn" onclick="pressKey('6')">6</button>
                 <button class="key-btn" onclick="pressKey('7')">7</button><button class="key-btn" onclick="pressKey('8')">8</button><button class="key-btn" onclick="pressKey('9')">9</button>
-                <button class="key-btn text-rose-400" onclick="clearPin()"><i class="fa-solid fa-trash-can"></i></button>
+                <button class="key-btn text-rose-400 text-base" onclick="clearPin()"><i class="fa-solid fa-trash-can"></i></button>
                 <button class="key-btn" onclick="pressKey('0')">0</button>
-                <button class="key-btn text-slate-400" onclick="backspacePin()"><i class="fa-solid fa-backspace"></i></button>
+                <button class="key-btn text-slate-400 text-base" onclick="backspacePin()"><i class="fa-solid fa-backspace"></i></button>
             </div>
-            <label class="text-[11px] text-slate-400 font-medium"><input type="checkbox" id="keep-login" class="mr-1"> 자동 로그인 유지</label>
+            <label class="text-[12px] text-slate-400 font-medium cursor-pointer"><input type="checkbox" id="keep-login" class="mr-1 accent-slate-600"> 자동 로그인 유지</label>
         </div>
     </div>
 
     <div id="main-dashboard" class="flip5-container flex flex-col pb-10 hidden">
-        <div class="bg-white px-4 pt-4 pb-2 flex justify-start gap-6 border-b border-slate-100">
-            <button onclick="switchTab('dc')" id="tab-dc" class="nav-tab active text-[14px] pb-3">DC 연금</button>
-            <button onclick="switchTab('isa')" id="tab-isa" class="nav-tab text-[14px] pb-3">ISA 계좌</button>
+        <div class="bg-white px-5 pt-5 pb-0 flex justify-start gap-6">
+            <button onclick="switchTab('dc')" id="tab-dc" class="nav-tab active text-[15px] pb-2.5">DC 연금</button>
+            <button onclick="switchTab('isa')" id="tab-isa" class="nav-tab text-[15px] pb-2.5">ISA 계좌</button>
         </div>
 
         <div class="px-4 pt-4 shrink-0">
-            <div class="bg-slate-900 text-white p-5 rounded-2xl shadow-lg">
-                <div class="flex justify-between items-center mb-4">
-                    <h1 id="dashboard-title" class="text-[11px] font-bold text-slate-400 tracking-[0.2em] uppercase">DC 연금</h1>
-                    <button onclick="fetchCurrentTabData()" id="refresh-btn" class="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-white transition-colors duration-200">
-                        <i id="refresh-icon" class="fa-solid fa-rotate-right text-sm"></i>
+            <div class="bg-gradient-to-br from-slate-800 to-slate-950 text-white p-6 rounded-[24px] shadow-md border border-slate-700/10">
+                <div class="flex justify-between items-center mb-5">
+                    <h1 id="dashboard-title" class="text-[12px] font-bold text-slate-400 tracking-wider">DC 연금</h1>
+                    <button onclick="fetchCurrentTabData()" id="refresh-btn" class="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-white active:scale-95 transition-all duration-200">
+                        <i id="refresh-icon" class="fa-solid fa-rotate-right text-xs"></i>
                     </button>
                 </div>
-                <p class="text-[12px] text-slate-400 mb-0.5">총 평가금액</p>
-                <div id="total-eval" class="text-3xl font-black tabular-nums text-white mb-4">₩0</div>
-                <div class="flex gap-4 border-t border-slate-800 pt-3">
-                    <div class="flex-1"><p class="text-[11px] text-slate-500 mb-0.5">누적 수익액</p><p id="total-profit-amt" class="text-[16px] font-bold text-amber-400">₩0</p></div>
-                    <div class="flex-1"><p class="text-[11px] text-slate-500 mb-0.5">누적 수익률</p><p id="total-profit-rate" class="text-[16px] font-bold text-amber-400">0.00%</p></div>
+                <p class="text-[12px] text-slate-400/80 mb-1 font-medium">총 평가금액</p>
+                <div id="total-eval" class="text-3xl font-bold tabular-nums text-white mb-5 tracking-tight">₩0</div>
+                <div class="flex gap-4 border-t border-white/5 pt-4">
+                    <div class="flex-1"><p class="text-[11px] text-slate-400/60 mb-0.5">누적 수익액</p><p id="total-profit-amt" class="text-[15px] font-semibold text-amber-400 tabular-nums">₩0</p></div>
+                    <div class="flex-1"><p class="text-[11px] text-slate-400/60 mb-0.5">누적 수익률</p><p id="total-profit-rate" class="text-[15px] font-semibold text-amber-400 tabular-nums">0.00%</p></div>
                 </div>
             </div>
         </div>
 
-        <div class="px-4 mt-6 mb-3 flex justify-between items-center">
-            <h2 class="text-[13px] font-bold text-slate-800">보유 종목 <span id="item-count" class="text-slate-400 font-normal">0</span></h2>
-            <div class="flex bg-slate-100 p-0.5 rounded-lg text-[10px]">
+        <div class="px-4 mt-7 mb-3 flex justify-between items-center">
+            <h2 class="text-[14px] font-bold text-slate-700">보유 종목 <span id="item-count" class="text-slate-400 font-normal ml-1">0</span></h2>
+            <div class="flex bg-gray-200/60 p-0.5 rounded-lg text-[11px]">
                 <button onclick="changeSort('default')" id="btn-sort-default" class="sort-btn active px-3 py-1 rounded-md">기본</button>
                 <button onclick="changeSort('current')" id="btn-sort-current" class="sort-btn px-3 py-1 rounded-md flex items-center gap-0.5">당일</button>
                 <button onclick="changeSort('cumulative')" id="btn-sort-cumulative" class="sort-btn px-3 py-1 rounded-md flex items-center gap-0.5">누적</button>
@@ -144,7 +157,7 @@
         function renderData(data) {
             document.getElementById('total-eval').innerText = '₩' + Math.round(data.summary.totalEval).toLocaleString();
             document.getElementById('total-profit-amt').innerText = '₩' + Math.round(data.summary.totalProfitAmt).toLocaleString();
-            document.getElementById('total-profit-rate').innerText = data.summary.totalProfitRate.toFixed(2) + '%';
+            document.getElementById('total-profit-rate').innerText = (data.summary.totalProfitRate >= 0 ? '+' : '') + data.summary.totalProfitRate.toFixed(2) + '%';
             document.getElementById('item-count').innerText = data.items.length;
             renderList(data.items);
         }
@@ -171,7 +184,6 @@
             const activeBtn = document.getElementById('btn-sort-' + t);
             activeBtn.classList.add('active');
 
-            // 화살표 바인딩 표시 처리
             const currentBtn = document.getElementById('btn-sort-current');
             const cumulativeBtn = document.getElementById('btn-sort-cumulative');
             
@@ -179,23 +191,22 @@
                 currentBtn.innerHTML = '당일';
                 cumulativeBtn.innerHTML = '누적';
             } else if (t === 'current') {
-                currentBtn.innerHTML = `당일 <span>${isAscending ? '↑' : '↓'}</span>`;
+                currentBtn.innerHTML = `당일 <span class="text-[9px]">${isAscending ? '▲' : '▼'}</span>`;
                 cumulativeBtn.innerHTML = '누적';
             } else if (t === 'cumulative') {
                 currentBtn.innerHTML = '당일';
-                cumulativeBtn.innerHTML = `누적 <span>${isAscending ? '↑' : '↓'}</span>`;
+                cumulativeBtn.innerHTML = `누적 <span class="text-[9px]">${isAscending ? '▲' : '▼'}</span>`;
             }
 
             renderList(allRawData[currentTab].items);
         }
 
+        /* 자바스크립트의 동적 생성 카드 구조와 Tailwind 조합을 완전히 리팩토링 */
         function renderList(items) {
             const list = document.getElementById('ticker-list'); list.innerHTML = '';
             let sorted = [...items];
             
-            // 정렬 로직 조건문 분기 처리
             if (currentSortType === 'default') {
-                // 리밸런싱 대상이 아닌 항목(정상)을 뒤로 밀고 상단배치 우선순위 지정
                 sorted.sort((a, b) => {
                     const aW = a.rebalanceStatus !== '정상' ? 0 : 1;
                     const bW = b.rebalanceStatus !== '정상' ? 0 : 1;
@@ -210,20 +221,28 @@
             sorted.forEach(item => {
                 const isW = item.rebalanceStatus !== '정상';
                 const card = document.createElement('div');
-                // 리밸런싱 대상만 노란색 테두리 유지, 일반 종목은 테두리 강조 배제 처리
-                card.className = `bg-white p-4 rounded-2xl border shadow-sm flex justify-between items-center ${isW ? 'border-amber-400 bg-amber-50/10' : 'border-slate-100'}`;
+                
+                // 가독성 극대화를 위한 카드 내부 패딩, 곡률, 그림자 및 그라데이션 조건문 교체
+                card.className = `bg-white p-4 rounded-[18px] border flex justify-between items-center transition-all duration-200 ${
+                    isW ? 'border-amber-200 bg-gradient-to-b from-white to-amber-50/20 shadow-sm' : 'border-slate-100 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.01)]'
+                }`;
+                
                 card.innerHTML = `
-                    <div class="flex-1">
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="text-[9px] font-bold text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded">${item.category}</span>
-                            <span class="font-bold text-[13px] text-slate-800">${item.name}</span>
-                            ${isW ? '<span class="text-[8px] font-black text-amber-600 bg-amber-100/70 px-1.5 py-0.5 rounded tracking-wide">REBALANCE</span>' : ''}
+                    <div class="flex-1 pr-2">
+                        <div class="flex items-center gap-1.5 mb-1.5 flex-wrap">
+                            <span class="text-[9px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded tracking-wide">${item.category}</span>
+                            <span class="font-semibold text-[13.5px] text-slate-800 tracking-tight">${item.name}</span>
+                            ${isW ? '<span class="text-[8px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded tracking-wide">REBALANCE</span>' : ''}
                         </div>
-                        <div class="text-[11px] text-slate-400">₩${Math.round(item.evalAmt).toLocaleString()}</div>
+                        <div class="text-[12px] text-slate-400 font-medium tabular-nums">₩${Math.round(item.evalAmt).toLocaleString()}</div>
                     </div>
-                    <div class="text-right">
-                        <div class="font-bold text-[13px] ${item.currentRate>=0?'text-rose-600':'text-blue-600'}">${item.currentRate >= 0 ? '+' : ''}${item.currentRate.toFixed(2)}%</div>
-                        <div class="text-[10px] text-slate-400">${item.cumulativeRate >= 0 ? '+' : ''}${item.cumulativeRate.toFixed(2)}%</div>
+                    <div class="text-right shrink-0">
+                        <div class="font-bold text-[14px] tabular-nums ${item.currentRate >= 0 ? 'text-rose-500' : 'text-blue-500'}">
+                            ${item.currentRate >= 0 ? '+' : ''}${item.currentRate.toFixed(2)}%
+                        </div>
+                        <div class="text-[11px] text-slate-400 font-medium mt-0.5 tabular-nums">
+                            ${item.cumulativeRate >= 0 ? '+' : ''}${item.cumulativeRate.toFixed(2)}%
+                        </div>
                     </div>`;
                 list.appendChild(card);
             });
