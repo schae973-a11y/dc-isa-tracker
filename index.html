@@ -10,27 +10,36 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
-            --c-up:       #ff6b6b;
-            --c-up-sub:   #ffaaaa;
-            --c-down:     #5bc8ff;
-            --c-down-sub: #99dbff;
-            --c-neutral:  #8899b4;
-            --c-up-card:   #e03535;
-            --c-down-card: #1e6fd9;
-            --bg-dark:    #111c32;
+            --bg-page:    #080f1e;   /* 페이지 배경 — 가장 어둡게 */
+            --bg-card:    #162035;   /* 서머리 카드 — 확실히 떠보이게 */
+            --bg-list:    #0d1729;   /* 종목 영역 배경 */
+            --bg-ticker:  #111e33;   /* 종목 카드 */
+            --bg-ticker-warn: #1a2030; /* 리밸런싱 종목 */
+
+            --c-up:       #ff5c5c;   /* 양수 빨강 */
+            --c-up-sub:   #ff9090;
+            --c-down:     #4db8ff;   /* 음수 파랑 — 밝게 */
+            --c-down-sub: #88ccff;
+            --c-neutral:  #4a5c78;
+
+            --c-text-primary:   #e8edf5;
+            --c-text-secondary: #4a607d;
+            --c-text-label:     #364d6a;
+            --c-border:         rgba(255,255,255,0.05);
+            --c-divider:        rgba(255,255,255,0.06);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         html, body {
             height: 100%;
-            overflow: hidden; /* 전체 페이지 스크롤 차단 */
-            background: var(--bg-dark);
+            overflow: hidden;
+            background: var(--bg-page);
             font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", sans-serif;
             -webkit-font-smoothing: antialiased;
         }
 
-        /* ── 전체 컨테이너: 뷰포트 꽉 채움, flex column ── */
+        /* ── 전체 레이아웃 ── */
         #main-dashboard {
             position: fixed;
             inset: 0;
@@ -38,253 +47,250 @@
             margin: 0 auto;
             display: flex;
             flex-direction: column;
-            background: var(--bg-dark);
+            background: var(--bg-page);
         }
 
-        /* ── 상단 고정 영역 (탭 + 헤더 카드) — shrink 없음 ── */
-        .header-fixed {
-            flex-shrink: 0;
-            background: var(--bg-dark);
-        }
+        .header-fixed { flex-shrink: 0; }
 
         /* ── 탭 바 ── */
         .tab-bar {
-            padding: 14px 16px 0;
+            padding: 16px 18px 0;
             display: flex;
             gap: 24px;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
+            background: var(--bg-page);
+            border-bottom: 1px solid var(--c-divider);
         }
         .nav-tab {
-            color: #5a6e8a;
-            font-size: 15px;
+            color: var(--c-text-label);
+            font-size: 14px;
             font-weight: 600;
             padding-bottom: 10px;
             position: relative;
-            background: none;
-            border: none;
+            background: none; border: none;
             cursor: pointer;
             transition: color 0.2s;
+            letter-spacing: 0.01em;
         }
-        .nav-tab.active { color: #fff; }
+        .nav-tab.active { color: var(--c-text-primary); }
         .nav-tab.active::after {
             content: "";
             position: absolute;
             bottom: -1px; left: 0; right: 0;
-            height: 2.5px;
-            background: #fff;
+            height: 2px;
+            background: var(--c-text-primary);
             border-radius: 2px;
         }
 
         /* ── 서머리 카드 ── */
         .summary-card {
             margin: 10px 12px 0;
-            background: linear-gradient(150deg, #1e2d47 0%, #131f36 55%, #0e1928 100%);
-            border-radius: 18px;
+            background: var(--bg-card);
+            border-radius: 16px;
             border: 1px solid rgba(255,255,255,0.07);
-            box-shadow: 0 8px 28px rgba(5,10,30,0.35);
-            padding: 12px 14px 13px;
+            /* 카드가 배경에서 확실히 뜨도록 그림자 강화 */
+            box-shadow:
+                0 0 0 1px rgba(255,255,255,0.03),
+                0 8px 32px rgba(0,0,0,0.5),
+                0 1px 0 rgba(255,255,255,0.06) inset;
+            padding: 14px 16px 14px;
         }
 
-        /* 타이틀 행 */
         .card-title-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 6px;
+            margin-bottom: 10px;
         }
         .card-title {
             font-size: 10px;
             font-weight: 700;
-            color: #5a6e8a;
-            letter-spacing: 0.08em;
+            color: var(--c-text-label);
+            letter-spacing: 0.1em;
             text-transform: uppercase;
         }
         .refresh-btn {
-            width: 26px; height: 26px;
+            width: 24px; height: 24px;
             display: flex; align-items: center; justify-content: center;
-            color: #5a6e8a;
+            color: var(--c-text-label);
             background: none; border: none; cursor: pointer;
             border-radius: 50%;
-            transition: color 0.2s, transform 0.1s;
+            transition: color 0.15s, transform 0.1s;
         }
-        .refresh-btn:active { transform: scale(0.88); }
+        .refresh-btn:active { transform: scale(0.85); color: var(--c-text-primary); }
 
-        /* 총 평가금액 */
+        /* 총 평가금액 — 위계의 정점 */
         .eval-label {
             font-size: 10px;
-            color: #5a6e8a;
+            color: var(--c-text-label);
             font-weight: 500;
-            letter-spacing: 0.04em;
-            margin-bottom: 2px;
+            letter-spacing: 0.05em;
+            margin-bottom: 3px;
         }
         .eval-number {
-            font-size: 28px;
+            font-size: 30px;
             font-weight: 800;
             letter-spacing: -0.04em;
-            color: #fff;
+            color: #ffffff;          /* 순백 — 카드 내 유일한 흰색 */
             font-variant-numeric: tabular-nums;
-            line-height: 1.1;
-            margin-bottom: 10px;
+            line-height: 1.05;
+            margin-bottom: 12px;
         }
 
         /* 구분선 */
         .divider-h {
             height: 1px;
-            background: linear-gradient(to right, transparent, rgba(255,255,255,0.09), transparent);
-            margin-bottom: 10px;
+            background: var(--c-divider);
+            margin-bottom: 11px;
         }
         .divider-v {
             width: 1px;
             align-self: stretch;
-            background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.10), transparent);
+            background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.08), transparent);
             flex-shrink: 0;
         }
 
-        /* 당일/누적 블록 */
-        .perf-row { display: flex; align-items: stretch; gap: 0; }
+        /* 당일/누적 */
+        .perf-row { display: flex; align-items: stretch; }
         .perf-block { flex: 1; display: flex; flex-direction: column; gap: 3px; }
-        .perf-block:first-child { padding-right: 12px; }
-        .perf-block:last-child  { padding-left: 12px; }
-        .perf-label  { font-size: 10px; font-weight: 600; letter-spacing: 0.06em; color: #5a6e8a; }
-        .perf-amount { font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.2; }
-        .perf-rate   { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+        .perf-block:first-child { padding-right: 14px; }
+        .perf-block:last-child  { padding-left: 14px; }
+        .perf-label  { font-size: 10px; font-weight: 600; color: var(--c-text-label); letter-spacing: 0.06em; margin-bottom: 1px; }
+        .perf-amount { font-size: 17px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.2; }
+        .perf-rate   { font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; opacity: 0.9; }
 
-        /* 다크 카드 색상 */
+        /* 다크 카드 위 색상 */
         .up-amt  { color: var(--c-up); }
         .up-rate { color: var(--c-up-sub); }
         .dn-amt  { color: var(--c-down); }
         .dn-rate { color: var(--c-down-sub); }
         .neu-amt, .neu-rate { color: var(--c-neutral); }
 
-        /* ── 종목 리스트 영역 — 이 부분만 스크롤 ── */
+        /* ── 종목 스크롤 영역 ── */
         .list-wrapper {
             flex: 1;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
-            background: #f0f2f6;
-            border-radius: 18px 18px 0 0;
+            background: var(--bg-list);
+            border-radius: 14px 14px 0 0;
             margin-top: 10px;
         }
-        /* 스크롤바 숨기기 */
         .list-wrapper::-webkit-scrollbar { display: none; }
         .list-wrapper { scrollbar-width: none; }
 
+        /* 리스트 헤더 — sticky */
         .list-header {
             position: sticky;
             top: 0;
             z-index: 10;
-            background: #f0f2f6;
-            padding: 12px 14px 8px;
+            background: var(--bg-list);
+            padding: 11px 14px 9px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 1px solid var(--c-divider);
         }
-        .list-title {
-            font-size: 13px;
-            font-weight: 700;
-            color: #374151;
-        }
-        .list-count {
-            font-size: 13px;
-            font-weight: 400;
-            color: #94a3b8;
-            margin-left: 4px;
-        }
+        .list-title { font-size: 12px; font-weight: 700; color: var(--c-text-secondary); }
+        .list-count { font-size: 12px; font-weight: 400; color: var(--c-text-label); margin-left: 4px; }
 
         /* 정렬 버튼 */
         .sort-group {
             display: flex;
-            background: rgba(0,0,0,0.07);
+            background: rgba(0,0,0,0.3);
             padding: 2px;
-            border-radius: 8px;
+            border-radius: 7px;
+            border: 1px solid rgba(255,255,255,0.05);
         }
         .sort-btn {
-            font-size: 11px;
-            font-weight: 600;
-            color: #94a3b8;
-            padding: 4px 10px;
-            border-radius: 6px;
-            border: none;
-            background: none;
+            font-size: 11px; font-weight: 600;
+            color: var(--c-text-label);
+            padding: 3px 10px;
+            border-radius: 5px;
+            border: none; background: none;
             cursor: pointer;
             transition: all 0.15s;
         }
-        .sort-btn.active { background: #fff; color: #374151; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-
-        /* 종목 카드 목록 */
-        .ticker-list {
-            padding: 0 12px 32px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
+        .sort-btn.active {
+            background: #1e3050;
+            color: var(--c-text-primary);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.3);
         }
 
-        /* 종목 카드 */
+        /* ── 종목 카드 (구분선 방식) ── */
+        .ticker-list { padding: 0 0 32px; }
+
         .ticker-card {
-            background: #fff;
-            border-radius: 14px;
-            border: 1px solid #eef1f6;
-            box-shadow: 0 1px 6px rgba(0,0,0,0.04);
-            padding: 11px 13px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 11px 14px;
+            border-bottom: 1px solid var(--c-divider);
+            background: transparent;
+            transition: background 0.1s;
+            position: relative;
         }
+        .ticker-card:active { background: rgba(255,255,255,0.02); }
+
+        /* 리밸런싱 — 왼쪽 보더 라인 */
         .ticker-card.warn {
-            border-color: #fde68a;
-            background: linear-gradient(to bottom, #fff, #fffdf0);
+            border-left: 2.5px solid #f59e0b;
+            padding-left: 11.5px;
+            background: rgba(245,158,11,0.04);
         }
 
-        /* 카드 색상 */
-        .card-up   { color: var(--c-up-card); }
-        .card-down { color: var(--c-down-card); }
-        .card-neu  { color: #94a3b8; }
+        /* 카드 위 색상 (동일 규칙) */
+        .card-up   { color: var(--c-up); }
+        .card-down { color: var(--c-down); }
+        .card-neu  { color: var(--c-neutral); }
 
         /* ── PIN 화면 ── */
         #auth-screen {
             position: fixed; inset: 0; z-index: 50;
-            background: #f8fafc;
+            background: #080f1e;
             display: flex; flex-direction: column;
             justify-content: center; align-items: center;
             padding: 24px;
         }
         .auth-box {
-            background: #fff;
+            background: #162035;
             padding: 32px 28px;
-            border-radius: 28px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.06);
-            width: 100%;
-            max-width: 300px;
+            border-radius: 24px;
+            border: 1px solid rgba(255,255,255,0.07);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            width: 100%; max-width: 300px;
             text-align: center;
         }
-        .pin-dot { width: 12px; height: 12px; border-radius: 50%; background: #e2e8f0; transition: all 0.15s; display: inline-block; }
-        .pin-dot.active { background: #334155; transform: scale(1.15); }
-        .key-btn {
-            width: 64px; height: 64px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 20px; font-weight: 600;
-            border-radius: 50%;
-            background: #fff;
-            border: 1px solid #f1f5f9;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
-            cursor: pointer;
+        .pin-dot {
+            width: 11px; height: 11px; border-radius: 50%;
+            background: #1e3050; display: inline-block;
+            transition: all 0.15s;
         }
-        .key-btn:active { background: #f1f5f9; }
+        .pin-dot.active { background: var(--c-text-primary); transform: scale(1.15); }
+        .key-btn {
+            width: 62px; height: 62px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 19px; font-weight: 600;
+            border-radius: 50%;
+            background: #1a2d48;
+            border: 1px solid rgba(255,255,255,0.06);
+            color: var(--c-text-primary);
+            cursor: pointer;
+            transition: background 0.1s;
+        }
+        .key-btn:active { background: #243d5e; }
     </style>
 </head>
 <body>
 
-<!-- ── PIN 인증 화면 ── -->
+<!-- ── PIN 인증 ── -->
 <div id="auth-screen">
     <div class="auth-box">
-        <i class="fa-solid fa-shield-halved" style="font-size:28px; color:#cbd5e1; margin-bottom:20px; display:block;"></i>
-        <h2 style="font-size:16px; font-weight:700; color:#1e293b; margin-bottom:24px;">보안 인증</h2>
-        <div style="display:flex; justify-content:center; gap:12px; margin-bottom:28px;">
+        <i class="fa-solid fa-shield-halved" style="font-size:26px; color:#2a4060; margin-bottom:18px; display:block;"></i>
+        <h2 style="font-size:15px; font-weight:700; color:var(--c-text-primary); margin-bottom:22px; letter-spacing:0.02em;">보안 인증</h2>
+        <div style="display:flex; justify-content:center; gap:11px; margin-bottom:26px;">
             <div class="pin-dot" id="dot-0"></div><div class="pin-dot" id="dot-1"></div><div class="pin-dot" id="dot-2"></div>
             <div class="pin-dot" id="dot-3"></div><div class="pin-dot" id="dot-4"></div><div class="pin-dot" id="dot-5"></div>
         </div>
-        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px 8px; justify-items:center; max-width:220px; margin:0 auto 20px;">
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px 8px; justify-items:center; max-width:216px; margin:0 auto 18px;">
             <button class="key-btn" onclick="pressKey('1')">1</button>
             <button class="key-btn" onclick="pressKey('2')">2</button>
             <button class="key-btn" onclick="pressKey('3')">3</button>
@@ -294,12 +300,12 @@
             <button class="key-btn" onclick="pressKey('7')">7</button>
             <button class="key-btn" onclick="pressKey('8')">8</button>
             <button class="key-btn" onclick="pressKey('9')">9</button>
-            <button class="key-btn" onclick="clearPin()" style="color:#f87171;"><i class="fa-solid fa-trash-can" style="font-size:15px;"></i></button>
+            <button class="key-btn" onclick="clearPin()" style="color:#f87171;"><i class="fa-solid fa-trash-can" style="font-size:14px;"></i></button>
             <button class="key-btn" onclick="pressKey('0')">0</button>
-            <button class="key-btn" onclick="backspacePin()" style="color:#94a3b8;"><i class="fa-solid fa-backspace" style="font-size:15px;"></i></button>
+            <button class="key-btn" onclick="backspacePin()" style="color:#4a607d;"><i class="fa-solid fa-backspace" style="font-size:14px;"></i></button>
         </div>
-        <label style="font-size:12px; color:#94a3b8; cursor:pointer;">
-            <input type="checkbox" id="keep-login" style="margin-right:4px; accent-color:#475569;"> 자동 로그인 유지
+        <label style="font-size:11px; color:var(--c-text-label); cursor:pointer;">
+            <input type="checkbox" id="keep-login" style="margin-right:4px; accent-color:#4a80b0;"> 자동 로그인 유지
         </label>
     </div>
 </div>
@@ -307,10 +313,8 @@
 <!-- ── 메인 대시보드 ── -->
 <div id="main-dashboard" style="display:none;">
 
-    <!-- 상단 고정: 탭 + 서머리 카드 -->
     <div class="header-fixed">
-
-        <!-- 탭 바 -->
+        <!-- 탭 -->
         <div class="tab-bar">
             <button onclick="switchTab('dc')" id="tab-dc" class="nav-tab active">DC 연금</button>
             <button onclick="switchTab('isa')" id="tab-isa" class="nav-tab">ISA 계좌</button>
@@ -321,7 +325,7 @@
             <div class="card-title-row">
                 <span id="dashboard-title" class="card-title">DC 연금</span>
                 <button onclick="fetchCurrentTabData()" id="refresh-btn" class="refresh-btn">
-                    <i id="refresh-icon" class="fa-solid fa-rotate-right" style="font-size:12px;"></i>
+                    <i id="refresh-icon" class="fa-solid fa-rotate-right" style="font-size:11px;"></i>
                 </button>
             </div>
             <p class="eval-label">총 평가금액</p>
@@ -331,20 +335,19 @@
                 <div class="perf-block">
                     <span class="perf-label">당일 수익</span>
                     <span id="diff-amt"  class="perf-amount neu-amt">₩0</span>
-                    <span id="diff-rate" class="perf-rate neu-rate">0.00%</span>
+                    <span id="diff-rate" class="perf-rate  neu-rate">0.00%</span>
                 </div>
                 <div class="divider-v"></div>
                 <div class="perf-block">
                     <span class="perf-label">누적 수익</span>
                     <span id="total-profit-amt"  class="perf-amount neu-amt">₩0</span>
-                    <span id="total-profit-rate" class="perf-rate neu-rate">0.00%</span>
+                    <span id="total-profit-rate" class="perf-rate  neu-rate">0.00%</span>
                 </div>
             </div>
         </div>
+    </div>
 
-    </div><!-- /header-fixed -->
-
-    <!-- 종목 스크롤 영역 -->
+    <!-- 종목 스크롤 -->
     <div class="list-wrapper">
         <div class="list-header">
             <div>
@@ -360,7 +363,7 @@
         <div id="ticker-list" class="ticker-list"></div>
     </div>
 
-</div><!-- /main-dashboard -->
+</div>
 
 <script>
     const dcGasUrl  = "https://script.google.com/macros/s/AKfycby8XB0dOwk5Tw7yUmQMiv0RfGOeYOjD_1uUcTA-rUYdc4YDoNME46GEK4ZhaxZ0b8hO/exec";
@@ -405,7 +408,7 @@
         fetchCurrentTabData();
     }
 
-    /* ── 탭 전환 ── */
+    /* ── 탭 ── */
     function switchTab(t) {
         currentTab = t;
         document.getElementById('tab-dc').classList.toggle('active', t === 'dc');
@@ -416,7 +419,7 @@
         else fetchCurrentTabData();
     }
 
-    /* ── 데이터 페치 ── */
+    /* ── 페치 ── */
     function fetchCurrentTabData() {
         const icon = document.getElementById('refresh-icon');
         const btn  = document.getElementById('refresh-btn');
@@ -460,7 +463,6 @@
     function renderData(data) {
         const s = data.summary;
         document.getElementById('total-eval').innerText = '₩' + Math.round(s.totalEval).toLocaleString();
-
         applyPerfColor(
             document.getElementById('diff-amt'),
             document.getElementById('diff-rate'),
@@ -471,7 +473,6 @@
             document.getElementById('total-profit-rate'),
             Math.round(s.totalProfitAmt || 0), parseFloat(s.totalProfitRate || 0)
         );
-
         document.getElementById('item-count').innerText = data.items.length;
         renderList(data.items);
     }
@@ -481,20 +482,17 @@
         currentSortType = 'default'; isAscending = false;
         document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('btn-sort-default').classList.add('active');
-        document.getElementById('btn-sort-current').innerHTML = '당일';
+        document.getElementById('btn-sort-current').innerHTML    = '당일';
         document.getElementById('btn-sort-cumulative').innerHTML = '누적';
     }
     function changeSort(t) {
         if (currentSortType === t) isAscending = !isAscending;
         else { currentSortType = t; isAscending = false; }
-
         document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('btn-sort-' + t).classList.add('active');
-
-        const arrow = `<span style="font-size:9px;">${isAscending ? '▲' : '▼'}</span>`;
+        const arrow = `<span style="font-size:8px;">${isAscending ? '▲' : '▼'}</span>`;
         document.getElementById('btn-sort-current').innerHTML    = t === 'current'    ? `당일 ${arrow}` : '당일';
         document.getElementById('btn-sort-cumulative').innerHTML = t === 'cumulative' ? `누적 ${arrow}` : '누적';
-
         if (allRawData[currentTab]) renderList(allRawData[currentTab].items);
     }
 
@@ -525,16 +523,18 @@
             card.className = 'ticker-card' + (isW ? ' warn' : '');
             card.innerHTML = `
                 <div style="flex:1; min-width:0; padding-right:10px;">
-                    <div style="display:flex; align-items:center; gap:5px; margin-bottom:4px; flex-wrap:wrap;">
-                        <span style="font-size:9px; font-weight:700; color:#94a3b8; background:#f1f5f9; padding:2px 5px; border-radius:4px; letter-spacing:0.05em; flex-shrink:0;">${item.category}</span>
-                        <span style="font-size:13.5px; font-weight:700; color:#1e293b; letter-spacing:-0.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.name}</span>
-                        ${isW ? '<span style="font-size:8px; font-weight:800; color:#92400e; background:#fef3c7; padding:2px 5px; border-radius:4px; flex-shrink:0;">REBALANCE</span>' : ''}
+                    <div style="display:flex; align-items:center; gap:5px; margin-bottom:3px; flex-wrap:wrap;">
+                        <span style="font-size:9px; font-weight:700; color:#2e4a6a; background:rgba(255,255,255,0.05); padding:1px 5px; border-radius:3px; letter-spacing:0.04em; flex-shrink:0;">${item.category}</span>
+                        <span style="font-size:13px; font-weight:600; color:var(--c-text-primary); letter-spacing:-0.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.name}</span>
                     </div>
-                    <div style="font-size:12px; color:#94a3b8; font-weight:500; font-variant-numeric:tabular-nums;">₩${Math.round(item.evalAmt).toLocaleString()}</div>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <span style="font-size:11px; color:#2e4a6a; font-weight:500; font-variant-numeric:tabular-nums;">₩${Math.round(item.evalAmt).toLocaleString()}</span>
+                        ${isW ? '<span style="font-size:9px; font-weight:700; color:#d97706; letter-spacing:0.03em;">● 리밸런싱</span>' : ''}
+                    </div>
                 </div>
                 <div style="text-align:right; flex-shrink:0;">
-                    <div style="font-size:15px; font-weight:800; font-variant-numeric:tabular-nums;" class="${curCls}">${curSign}${cur.toFixed(2)}%</div>
-                    <div style="font-size:12px; font-weight:600; font-variant-numeric:tabular-nums; margin-top:2px;" class="${cumCls}">${cumSign}${cum.toFixed(2)}%</div>
+                    <div style="font-size:14px; font-weight:800; font-variant-numeric:tabular-nums;" class="${curCls}">${curSign}${cur.toFixed(2)}%</div>
+                    <div style="font-size:11px; font-weight:600; font-variant-numeric:tabular-nums; margin-top:2px;" class="${cumCls}">${cumSign}${cum.toFixed(2)}%</div>
                 </div>`;
             list.appendChild(card);
         });
