@@ -668,6 +668,10 @@
             const diffX = moveX - startX;
             const diffY = currentY - startY;
 
+            if (Math.abs(diffX) > 30 && Math.abs(diffY) < 50) {
+                if (e.cancelable) e.preventDefault();  // 수평 스와이프 방해 막기
+            }
+
             // Pull-to-Refresh 트리거 조건 (리스트 스크롤이 맨 위에 있을 때)
             if (diffY > 0 && listWrapper.scrollTop <= 0) {
                 if (Math.abs(diffY) > Math.abs(diffX)) {
@@ -713,12 +717,10 @@
             }
 
             /* ── [수정 완료] 좌우 스와이프 내비게이션 방향 교정 로직 ── */
-            if (Math.abs(diffX) > 70 && Math.abs(diffY) < 40) {
-                if (diffX < 0) {
-                    // 오른쪽에서 왼쪽으로 스와이프 (←) : 다음 화면(오른쪽)에 있는 탭으로 밀어내기
+            if (Math.abs(diffX) > 60 && Math.abs(diffY) < 65) {  // ← 여기 완화
+                if (diffX < -60) {           // 왼쪽으로 스와이프 (다음 탭)
                     if (currentTab === 'dc') switchTab('isa');
-                } else {
-                    // 왼쪽에서 오른쪽으로 스와이프 (→) : 이전 화면(왼쪽)에 있는 탭으로 당겨오기
+                } else if (diffX > 60) {     // 오른쪽으로 스와이프 (이전 탭)
                     if (currentTab === 'isa') switchTab('dc');
                 }
             }
