@@ -9,34 +9,118 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background-color: #f4f6f9 !important; font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif; -webkit-font-smoothing: antialiased; }
+        body { background-color: #f0f2f5 !important; font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", sans-serif; -webkit-font-smoothing: antialiased; }
         .tabular-nums { font-variant-numeric: tabular-nums; }
         .flip5-container { max-width: 360px; margin: 0 auto; min-height: 100vh; }
-        
-        /* 탭 메뉴: 하단 통 라인을 제거하고 금융 앱 스타일의 세련된 하단 언더바 라인으로 변경 */
+
         .nav-tab { color: #9ca3b8; transition: all 0.2s; position: relative; font-weight: 500; }
         .nav-tab.active { color: #111827; font-weight: 700; }
         .nav-tab.active::after {
             content: "";
             position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
+            bottom: 0; left: 0; right: 0;
             height: 2.5px;
             background-color: #111827;
             border-radius: 2px;
         }
-        
+
         .sort-btn { color: #94a3b8; transition: all 0.2s; font-weight: 500; }
         .sort-btn.active { background-color: #e5e7eb; color: #4b5563; font-weight: 700; }
+
         .pin-dot { width: 12px; height: 12px; border-radius: 50%; background-color: #e2e8f0; transition: all 0.15s; }
         .pin-dot.active { background-color: #334155; transform: scale(1.1); }
         .key-btn { width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 600; border-radius: 50%; background: #ffffff; border: 1px solid #f1f5f9; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
         .key-btn:active { background: #f1f5f9; }
+
+        /* 헤더 카드 */
+        .summary-card {
+            background: linear-gradient(145deg, #1a2236 0%, #0d1526 60%, #111c32 100%);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(10,20,50,0.18), 0 1.5px 0px rgba(255,255,255,0.04) inset;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+
+        /* 구분선 */
+        .divider-v {
+            width: 1px;
+            background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.10), transparent);
+            align-self: stretch;
+            margin: 0 2px;
+        }
+
+        /* 당일/누적 각 박스 */
+        .perf-block {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        /* 수익 레이블 */
+        .perf-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+        }
+
+        /* 수익액 */
+        .perf-amount {
+            font-size: 15px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            line-height: 1.2;
+        }
+
+        /* 수익률 */
+        .perf-rate {
+            font-size: 12px;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+            opacity: 0.85;
+        }
+
+        /* 색상 — 상승 */
+        .up-color { color: #f87171; }         /* 붉은 계열 (한국 상승) */
+        .up-rate-color { color: #fca5a5; }
+        /* 색상 — 하락 */
+        .down-color { color: #60a5fa; }       /* 파란 계열 (한국 하락) */
+        .down-rate-color { color: #93c5fd; }
+        /* 색상 — 누적 (황금) */
+        .accum-color { color: #fbbf24; }
+        .accum-rate-color { color: #fde68a; }
+
+        /* 종목 카드 */
+        .ticker-card {
+            background: #ffffff;
+            border-radius: 18px;
+            border: 1px solid #f1f5f9;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            transition: all 0.2s;
+        }
+        .ticker-card.warn {
+            border-color: #fde68a;
+            background: linear-gradient(to bottom, #ffffff, #fffbeb);
+        }
+
+        /* 총평가금액 숫자 */
+        .eval-number {
+            font-size: 30px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+        }
+
+        /* 구분선 (헤더 카드 내부 수평) */
+        .divider-h {
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.08), transparent);
+            margin: 0 -4px;
+        }
     </style>
 </head>
 <body>
 
+    <!-- 인증 화면 -->
     <div id="auth-screen" class="fixed inset-0 bg-slate-50 z-50 flex flex-col justify-center items-center px-6">
         <div class="bg-white p-8 rounded-[28px] shadow-sm border border-slate-100 w-full max-w-[320px] text-center">
             <div class="mb-6"><i class="fa-solid fa-shield-halved text-slate-300 text-3xl"></i></div>
@@ -53,47 +137,83 @@
                 <button class="key-btn" onclick="pressKey('0')">0</button>
                 <button class="key-btn text-slate-400 text-base" onclick="backspacePin()"><i class="fa-solid fa-backspace"></i></button>
             </div>
-            <label class="text-[12px] text-slate-400 font-medium cursor-pointer"><input type="checkbox" id="keep-login" class="mr-1 accent-slate-600"> 자동 로그인 유지</label>
+            <label class="text-[12px] text-slate-400 font-medium cursor-pointer">
+                <input type="checkbox" id="keep-login" class="mr-1 accent-slate-600"> 자동 로그인 유지
+            </label>
         </div>
     </div>
 
+    <!-- 메인 대시보드 -->
     <div id="main-dashboard" class="flip5-container flex flex-col pb-10 hidden">
+
+        <!-- 탭 -->
         <div class="bg-white px-5 pt-5 pb-0 flex justify-start gap-6">
             <button onclick="switchTab('dc')" id="tab-dc" class="nav-tab active text-[15px] pb-2.5">DC 연금</button>
             <button onclick="switchTab('isa')" id="tab-isa" class="nav-tab text-[15px] pb-2.5">ISA 계좌</button>
         </div>
 
+        <!-- 헤더 카드 -->
         <div class="px-4 pt-4 shrink-0">
-            <div class="bg-gradient-to-br from-slate-800 to-slate-950 text-white p-6 rounded-[24px] shadow-md border border-slate-700/10">
-                <div class="flex justify-between items-center mb-5">
-                    <h1 id="dashboard-title" class="text-[12px] font-bold text-slate-400 tracking-wider">DC 연금</h1>
-                    <button onclick="fetchCurrentTabData()" id="refresh-btn" class="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-white active:scale-95 transition-all duration-200">
+            <div class="summary-card p-5">
+
+                <!-- 타이틀 + 새로고침 -->
+                <div class="flex justify-between items-center mb-4">
+                    <span id="dashboard-title" class="text-[11px] font-bold text-slate-400 tracking-widest uppercase">DC 연금</span>
+                    <button onclick="fetchCurrentTabData()" id="refresh-btn"
+                        class="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-white active:scale-95 transition-all duration-200">
                         <i id="refresh-icon" class="fa-solid fa-rotate-right text-xs"></i>
                     </button>
                 </div>
-                <p class="text-[12px] text-slate-400/80 mb-1 font-medium">총 평가금액</p>
-                <div id="total-eval" class="text-3xl font-bold tabular-nums text-white mb-5 tracking-tight">₩0</div>
-                <div class="flex gap-4 border-t border-white/5 pt-4">
-                    <div class="flex-1"><p class="text-[11px] text-slate-400/60 mb-0.5">누적 수익액</p><p id="total-profit-amt" class="text-[15px] font-semibold text-amber-400 tabular-nums">₩0</p></div>
-                    <div class="flex-1"><p class="text-[11px] text-slate-400/60 mb-0.5">누적 수익률</p><p id="total-profit-rate" class="text-[15px] font-semibold text-amber-400 tabular-nums">0.00%</p></div>
+
+                <!-- 총 평가금액 -->
+                <p class="text-[11px] text-slate-500 font-medium mb-1 tracking-wide">총 평가금액</p>
+                <div id="total-eval" class="eval-number text-white tabular-nums mb-4">₩0</div>
+
+                <!-- 구분선 -->
+                <div class="divider-h mb-4"></div>
+
+                <!-- 당일 | 누적 2분할 -->
+                <div class="flex items-stretch gap-0">
+
+                    <!-- 당일 수익 -->
+                    <div class="perf-block pl-1 pr-3">
+                        <span class="perf-label text-slate-500">당일 수익</span>
+                        <span id="diff-amt" class="perf-amount text-slate-300">₩0</span>
+                        <span id="diff-rate" class="perf-rate text-slate-500">0.00%</span>
+                    </div>
+
+                    <!-- 세로 구분선 -->
+                    <div class="divider-v"></div>
+
+                    <!-- 누적 수익 -->
+                    <div class="perf-block pl-4 pr-1">
+                        <span class="perf-label text-slate-500">누적 수익</span>
+                        <span id="total-profit-amt" class="perf-amount accum-color">₩0</span>
+                        <span id="total-profit-rate" class="perf-rate accum-rate-color">0.00%</span>
+                    </div>
+
                 </div>
             </div>
         </div>
 
-        <div class="px-4 mt-7 mb-3 flex justify-between items-center">
-            <h2 class="text-[14px] font-bold text-slate-700">보유 종목 <span id="item-count" class="text-slate-400 font-normal ml-1">0</span></h2>
+        <!-- 종목 리스트 헤더 -->
+        <div class="px-4 mt-6 mb-3 flex justify-between items-center">
+            <h2 class="text-[14px] font-bold text-slate-700">
+                보유 종목 <span id="item-count" class="text-slate-400 font-normal ml-1">0</span>
+            </h2>
             <div class="flex bg-gray-200/60 p-0.5 rounded-lg text-[11px]">
                 <button onclick="changeSort('default')" id="btn-sort-default" class="sort-btn active px-3 py-1 rounded-md">기본</button>
-                <button onclick="changeSort('current')" id="btn-sort-current" class="sort-btn px-3 py-1 rounded-md flex items-center gap-0.5">당일</button>
-                <button onclick="changeSort('cumulative')" id="btn-sort-cumulative" class="sort-btn px-3 py-1 rounded-md flex items-center gap-0.5">누적</button>
+                <button onclick="changeSort('current')" id="btn-sort-current" class="sort-btn px-3 py-1 rounded-md">당일</button>
+                <button onclick="changeSort('cumulative')" id="btn-sort-cumulative" class="sort-btn px-3 py-1 rounded-md">누적</button>
             </div>
         </div>
 
+        <!-- 종목 리스트 -->
         <div id="ticker-list" class="px-4 space-y-3 pb-6"></div>
     </div>
 
     <script>
-        const dcGasUrl = "https://script.google.com/macros/s/AKfycby8XB0dOwk5Tw7yUmQMiv0RfGOeYOjD_1uUcTA-rUYdc4YDoNME46GEK4ZhaxZ0b8hO/exec";
+        const dcGasUrl  = "https://script.google.com/macros/s/AKfycby8XB0dOwk5Tw7yUmQMiv0RfGOeYOjD_1uUcTA-rUYdc4YDoNME46GEK4ZhaxZ0b8hO/exec";
         const isaGasUrl = "https://script.google.com/macros/s/AKfycbxW7zkcTspkQKcUFJrzydqh1gbLaUmQFUraHXeSXke3TC-y4xmjXoZ2F0g8Bq743QTA/exec";
         const targetToken = "p_e2417c74";
 
@@ -103,68 +223,128 @@
             if (localStorage.getItem('dashboard_auth_token') === targetToken) unlockDashboard();
         };
 
-        function simpleHash(str) { let h = 1729; for(let i=0; i<str.length; i++) h = Math.imul(h ^ str.charCodeAt(i), 2654435761); return "p_" + (h >>> 0).toString(16); }
-        function pressKey(num) { if(inputPin.length < 6) { inputPin += num; updatePinDots(); if(inputPin.length === 6) setTimeout(verifyPin, 100); } }
+        /* ─── 인증 ─── */
+        function simpleHash(str) {
+            let h = 1729;
+            for (let i = 0; i < str.length; i++) h = Math.imul(h ^ str.charCodeAt(i), 2654435761);
+            return "p_" + (h >>> 0).toString(16);
+        }
+        function pressKey(num) {
+            if (inputPin.length < 6) {
+                inputPin += num;
+                updatePinDots();
+                if (inputPin.length === 6) setTimeout(verifyPin, 100);
+            }
+        }
         function backspacePin() { inputPin = inputPin.slice(0, -1); updatePinDots(); }
-        function clearPin() { inputPin = ""; updatePinDots(); }
-        function updatePinDots() { for(let i=0; i<6; i++) document.getElementById(`dot-${i}`).classList.toggle('active', i < inputPin.length); }
-
+        function clearPin()     { inputPin = ""; updatePinDots(); }
+        function updatePinDots() {
+            for (let i = 0; i < 6; i++)
+                document.getElementById(`dot-${i}`).classList.toggle('active', i < inputPin.length);
+        }
         function verifyPin() {
             if (simpleHash(inputPin) === targetToken) {
-                if (document.getElementById('keep-login').checked) localStorage.setItem('dashboard_auth_token', targetToken);
+                if (document.getElementById('keep-login').checked)
+                    localStorage.setItem('dashboard_auth_token', targetToken);
                 unlockDashboard();
             } else { clearPin(); }
         }
-
         function unlockDashboard() {
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('main-dashboard').classList.remove('hidden');
             fetchCurrentTabData();
         }
 
+        /* ─── 탭 전환 ─── */
         function switchTab(t) {
             currentTab = t;
             document.getElementById('tab-dc').classList.toggle('active', t === 'dc');
             document.getElementById('tab-isa').classList.toggle('active', t === 'isa');
             document.getElementById('dashboard-title').innerText = t === 'dc' ? 'DC 연금' : 'ISA 계좌';
             resetSortUI();
-            if(allRawData[t]) renderData(allRawData[t]); else fetchCurrentTabData();
+            if (allRawData[t]) renderData(allRawData[t]);
+            else fetchCurrentTabData();
         }
 
+        /* ─── 데이터 페치 ─── */
         function fetchCurrentTabData() {
             const icon = document.getElementById('refresh-icon');
-            const btn = document.getElementById('refresh-btn');
+            const btn  = document.getElementById('refresh-btn');
             if (icon) icon.classList.add('fa-spin');
-            if (btn) btn.disabled = true;
+            if (btn)  btn.disabled = true;
 
             const cb = 'cb_' + Date.now();
-            window[cb] = (res) => { 
-                allRawData[currentTab] = res; 
-                renderData(res); 
-                document.getElementById('s-script').remove(); 
+            window[cb] = (res) => {
+                allRawData[currentTab] = res;
+                renderData(res);
+                const s = document.getElementById('s-script');
+                if (s) s.remove();
                 if (icon) icon.classList.remove('fa-spin');
-                if (btn) btn.disabled = false;
+                if (btn)  btn.disabled = false;
             };
-            const s = document.createElement('script'); s.id = 's-script';
+            const s = document.createElement('script');
+            s.id  = 's-script';
             s.src = (currentTab === 'dc' ? dcGasUrl : isaGasUrl) + "?callback=" + cb;
             s.onerror = () => {
                 if (icon) icon.classList.remove('fa-spin');
-                if (btn) btn.disabled = false;
+                if (btn)  btn.disabled = false;
             };
             document.body.appendChild(s);
         }
 
+        /* ─── 렌더 ─── */
+        function getPercentDetails(val) {
+            // GAS에서 소수(0.1 = 10%)로 넘어오는 경우 대응
+            if (Math.abs(val) < 10 && val !== 0) val = val * 100;
+            return val;
+        }
+
         function renderData(data) {
-            document.getElementById('total-eval').innerText = '₩' + Math.round(data.summary.totalEval).toLocaleString();
-            document.getElementById('total-profit-amt').innerText = '₩' + Math.round(data.summary.totalProfitAmt).toLocaleString();
-            document.getElementById('total-profit-rate').innerText = (data.summary.totalProfitRate >= 0 ? '+' : '') + data.summary.totalProfitRate.toFixed(2) + '%';
+            const s = data.summary;
+
+            // 총 평가금액
+            document.getElementById('total-eval').innerText = '₩' + Math.round(s.totalEval).toLocaleString();
+
+            // 누적 수익
+            const profitAmt  = Math.round(s.totalProfitAmt || 0);
+            const profitRate = parseFloat(s.totalProfitRate || 0);
+            document.getElementById('total-profit-amt').innerText =
+                (profitAmt >= 0 ? '+' : '') + '₩' + Math.abs(profitAmt).toLocaleString();
+            document.getElementById('total-profit-rate').innerText =
+                (profitRate >= 0 ? '+' : '') + profitRate.toFixed(2) + '%';
+
+            // 당일 변동
+            const diffAmt  = Math.round(s.diffAmt  || 0);
+            const diffRate = parseFloat(s.diffRate || 0);
+
+            const amtEl  = document.getElementById('diff-amt');
+            const rateEl = document.getElementById('diff-rate');
+
+            if (diffAmt === 0) {
+                amtEl.className  = 'perf-amount text-slate-400';
+                rateEl.className = 'perf-rate text-slate-500';
+                amtEl.innerText  = '₩0';
+                rateEl.innerText = '0.00%';
+            } else if (diffAmt > 0) {
+                amtEl.className  = 'perf-amount up-color';
+                rateEl.className = 'perf-rate up-rate-color';
+                amtEl.innerText  = '+₩' + diffAmt.toLocaleString();
+                rateEl.innerText = '+' + diffRate.toFixed(2) + '%';
+            } else {
+                amtEl.className  = 'perf-amount down-color';
+                rateEl.className = 'perf-rate down-rate-color';
+                amtEl.innerText  = '-₩' + Math.abs(diffAmt).toLocaleString();
+                rateEl.innerText = diffRate.toFixed(2) + '%';
+            }
+
             document.getElementById('item-count').innerText = data.items.length;
             renderList(data.items);
         }
 
+        /* ─── 정렬 ─── */
         function resetSortUI() {
             currentSortType = 'default';
-            isAscending = false;
+            isAscending     = false;
             document.getElementById('btn-sort-default').classList.add('active');
             document.getElementById('btn-sort-current').classList.remove('active');
             document.getElementById('btn-sort-current').innerHTML = '당일';
@@ -177,72 +357,56 @@
                 isAscending = !isAscending;
             } else {
                 currentSortType = t;
-                isAscending = false;
+                isAscending     = false;
             }
-            
             document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
-            const activeBtn = document.getElementById('btn-sort-' + t);
-            activeBtn.classList.add('active');
+            document.getElementById('btn-sort-' + t).classList.add('active');
 
-            const currentBtn = document.getElementById('btn-sort-current');
-            const cumulativeBtn = document.getElementById('btn-sort-cumulative');
-            
-            if (t === 'default') {
-                currentBtn.innerHTML = '당일';
-                cumulativeBtn.innerHTML = '누적';
-            } else if (t === 'current') {
-                currentBtn.innerHTML = `당일 <span class="text-[9px]">${isAscending ? '▲' : '▼'}</span>`;
-                cumulativeBtn.innerHTML = '누적';
-            } else if (t === 'cumulative') {
-                currentBtn.innerHTML = '당일';
-                cumulativeBtn.innerHTML = `누적 <span class="text-[9px]">${isAscending ? '▲' : '▼'}</span>`;
-            }
+            const arrow = `<span class="text-[9px]">${isAscending ? '▲' : '▼'}</span>`;
+            document.getElementById('btn-sort-current').innerHTML    = (t === 'current')    ? `당일 ${arrow}` : '당일';
+            document.getElementById('btn-sort-cumulative').innerHTML = (t === 'cumulative') ? `누적 ${arrow}` : '누적';
 
-            renderList(allRawData[currentTab].items);
+            if (allRawData[currentTab]) renderList(allRawData[currentTab].items);
         }
 
-        /* 자바스크립트의 동적 생성 카드 구조와 Tailwind 조합을 완전히 리팩토링 */
+        /* ─── 종목 카드 렌더 ─── */
         function renderList(items) {
-            const list = document.getElementById('ticker-list'); list.innerHTML = '';
+            const list = document.getElementById('ticker-list');
+            list.innerHTML = '';
+
             let sorted = [...items];
-            
             if (currentSortType === 'default') {
-                sorted.sort((a, b) => {
-                    const aW = a.rebalanceStatus !== '정상' ? 0 : 1;
-                    const bW = b.rebalanceStatus !== '정상' ? 0 : 1;
-                    return aW - bW;
-                });
+                sorted.sort((a, b) => (a.rebalanceStatus !== '정상' ? 0 : 1) - (b.rebalanceStatus !== '정상' ? 0 : 1));
             } else if (currentSortType === 'current') {
-                sorted.sort((a,b) => isAscending ? a.currentRate - b.currentRate : b.currentRate - a.currentRate);
+                sorted.sort((a, b) => isAscending ? a.currentRate - b.currentRate : b.currentRate - a.currentRate);
             } else if (currentSortType === 'cumulative') {
-                sorted.sort((a,b) => isAscending ? a.cumulativeRate - b.cumulativeRate : b.cumulativeRate - a.cumulativeRate);
+                sorted.sort((a, b) => isAscending ? a.cumulativeRate - b.cumulativeRate : b.cumulativeRate - a.cumulativeRate);
             }
-            
+
             sorted.forEach(item => {
                 const isW = item.rebalanceStatus !== '정상';
+                const curRate  = parseFloat(item.currentRate  || 0);
+                const cumRate  = parseFloat(item.cumulativeRate || 0);
+
+                const curColor  = curRate  >= 0 ? 'text-rose-500'  : 'text-blue-500';
+                const cumColor  = cumRate  >= 0 ? 'text-amber-500' : 'text-sky-400';
+                const curSign   = curRate  >= 0 ? '+' : '';
+                const cumSign   = cumRate  >= 0 ? '+' : '';
+
                 const card = document.createElement('div');
-                
-                // 가독성 극대화를 위한 카드 내부 패딩, 곡률, 그림자 및 그라데이션 조건문 교체
-                card.className = `bg-white p-4 rounded-[18px] border flex justify-between items-center transition-all duration-200 ${
-                    isW ? 'border-amber-200 bg-gradient-to-b from-white to-amber-50/20 shadow-sm' : 'border-slate-100 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.01)]'
-                }`;
-                
+                card.className = `ticker-card p-4 flex justify-between items-center ${isW ? 'warn' : ''}`;
                 card.innerHTML = `
-                    <div class="flex-1 pr-2">
+                    <div class="flex-1 pr-3 min-w-0">
                         <div class="flex items-center gap-1.5 mb-1.5 flex-wrap">
-                            <span class="text-[9px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded tracking-wide">${item.category}</span>
-                            <span class="font-semibold text-[13.5px] text-slate-800 tracking-tight">${item.name}</span>
-                            ${isW ? '<span class="text-[8px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded tracking-wide">REBALANCE</span>' : ''}
+                            <span class="text-[9px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded tracking-wide shrink-0">${item.category}</span>
+                            <span class="font-semibold text-[13.5px] text-slate-800 tracking-tight truncate">${item.name}</span>
+                            ${isW ? '<span class="text-[8px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded tracking-wide shrink-0">REBALANCE</span>' : ''}
                         </div>
                         <div class="text-[12px] text-slate-400 font-medium tabular-nums">₩${Math.round(item.evalAmt).toLocaleString()}</div>
                     </div>
                     <div class="text-right shrink-0">
-                        <div class="font-bold text-[14px] tabular-nums ${item.currentRate >= 0 ? 'text-rose-500' : 'text-blue-500'}">
-                            ${item.currentRate >= 0 ? '+' : ''}${item.currentRate.toFixed(2)}%
-                        </div>
-                        <div class="text-[11px] text-slate-400 font-medium mt-0.5 tabular-nums">
-                            ${item.cumulativeRate >= 0 ? '+' : ''}${item.cumulativeRate.toFixed(2)}%
-                        </div>
+                        <div class="font-bold text-[14px] tabular-nums ${curColor}">${curSign}${curRate.toFixed(2)}%</div>
+                        <div class="text-[11px] font-semibold mt-0.5 tabular-nums ${cumColor}">${cumSign}${cumRate.toFixed(2)}%</div>
                     </div>`;
                 list.appendChild(card);
             });
