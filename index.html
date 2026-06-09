@@ -69,86 +69,24 @@
         /* ── 당겨서 새로고침 인디케이터 배너 ── */
         #ptr-indicator {
             position: absolute;
-            top: -60px;
-            left: 0;
-            right: 0;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            background: var(--accent-mint);
-            color: var(--primary-green);
-            font-size: 13px;
-            font-weight: 600;
-            border-bottom: 1px solid var(--c-border);
-            z-index: 40;
-            transition: transform 0.1s ease-out;
+            top: -60px; left: 0; right: 0; height: 60px;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            background: var(--accent-mint); color: var(--primary-green);
+            font-size: 13px; font-weight: 600; border-bottom: 1px solid var(--c-border);
+            z-index: 40; transition: transform 0.1s ease-out;
         }
 
         /* ── 탭 바 ── */
-        .tab-bar {
-            padding: 16px 18px 0;
-            display: flex;
-            gap: 24px;
-            background: var(--bg-page);
-            border-bottom: 1px solid var(--c-border);
-        }
-        .nav-tab {
-            color: var(--c-text-label);
-            font-size: 14px;
-            font-weight: 600;
-            padding-bottom: 10px;
-            position: relative;
-            background: none; border: none;
-            cursor: pointer;
-            transition: color 0.2s;
-            letter-spacing: 0.01em;
-        }
+        .tab-bar { padding: 16px 18px 0; display: flex; gap: 24px; background: var(--bg-page); border-bottom: 1px solid var(--c-border); }
+        .nav-tab { color: var(--c-text-label); font-size: 14px; font-weight: 600; padding-bottom: 10px; position: relative; background: none; border: none; cursor: pointer; transition: color 0.2s; letter-spacing: 0.01em; }
         .nav-tab.active { color: var(--primary-green); font-weight: 700; }
-        .nav-tab.active::after {
-            content: "";
-            position: absolute;
-            bottom: -1px; left: 0; right: 0;
-            height: 3px;
-            background: var(--primary-green);
-            border-radius: 3px;
-        }
+        .nav-tab.active::after { content: ""; position: absolute; bottom: -1px; left: 0; right: 0; height: 3px; background: var(--primary-green); border-radius: 3px; }
 
         /* ── 서머리 카드 ── */
-        .summary-card {
-            margin: 12px 12px 0;
-            background: var(--bg-card);
-            border-radius: 16px;
-            border: 1px solid var(--c-border);
-            box-shadow: 0 4px 20px rgba(46, 125, 50, 0.05), 0 1px 3px rgba(0, 0, 0, 0.02);
-            padding: 16px 18px;
-        }
-
-        .card-title-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-        .card-title {
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--primary-green);
-            letter-spacing: 0.05em;
-            background: var(--accent-mint);
-            padding: 2px 8px;
-            border-radius: 4px;
-        }
-        .refresh-btn {
-            width: 26px;
-            height: 26px;
-            display: flex; align-items: center; justify-content: center;
-            color: var(--c-text-secondary);
-            background: var(--bg-page); border: none; cursor: pointer;
-            border-radius: 50%;
-            transition: all 0.15s;
-        }
+        .summary-card { margin: 12px 12px 0; background: var(--bg-card); border-radius: 16px; border: 1px solid var(--c-border); box-shadow: 0 4px 20px rgba(46, 125, 50, 0.05), 0 1px 3px rgba(0, 0, 0, 0.02); padding: 16px 18px; }
+        .card-title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .card-title { font-size: 11px; font-weight: 700; color: var(--primary-green); letter-spacing: 0.05em; background: var(--accent-mint); padding: 2px 8px; border-radius: 4px; }
+        .refresh-btn { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; color: var(--c-text-secondary); background: var(--bg-page); border: none; cursor: pointer; border-radius: 50%; transition: all 0.15s; }
         .refresh-btn:active { transform: scale(0.85); background: var(--accent-mint); color: var(--primary-green); }
 
         .eval-label { font-size: 11px; color: var(--c-text-secondary); font-weight: 500; margin-bottom: 2px; }
@@ -172,40 +110,15 @@
         .neu-amt, .neu-rate { color: var(--c-neutral); }
 
         /* ── 트렌드 차트 카드 ── */
-        .chart-card {
-            margin: 10px 12px 0;
-            background: var(--bg-card);
-            border-radius: 16px;
-            border: 1px solid var(--c-border);
-            padding: 16px 16px 12px;
-            box-shadow: 0 4px 20px rgba(46, 125, 50, 0.03);
-        }
+        .chart-card { margin: 10px 12px 0; background: var(--bg-card); border-radius: 16px; border: 1px solid var(--c-border); padding: 16px 16px 12px; box-shadow: 0 4px 20px rgba(46, 125, 50, 0.03); }
         .chart-container { position: relative; width: 100%; height: 140px; }
 
         /* ── 종목 스크롤 영역 ── */
-        .list-wrapper {
-            flex: 1;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            background: var(--bg-list);
-            border-radius: 20px 20px 0 0;
-            margin-top: 12px;
-            border-top: 1px solid var(--c-border);
-        }
+        .list-wrapper { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background: var(--bg-list); border-radius: 20px 20px 0 0; margin-top: 12px; border-top: 1px solid var(--c-border); }
         .list-wrapper::-webkit-scrollbar { display: none; }
         .list-wrapper { scrollbar-width: none; }
 
-        .list-header {
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            background: var(--bg-list);
-            padding: 12px 16px 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--c-divider);
-        }
+        .list-header { position: sticky; top: 0; z-index: 10; background: var(--bg-list); padding: 12px 16px 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--c-divider); }
         .list-title { font-size: 13px; font-weight: 700; color: var(--c-text-primary); }
         .list-count { font-size: 12px; font-weight: 600; color: var(--primary-green); margin-left: 4px; background: var(--accent-mint); padding: 1px 6px; border-radius: 10px; }
 
@@ -477,34 +390,40 @@
         
         if (data.chart && data.chart.myAsset && data.chart.myAsset.length > 0) {
             renderTrendChart(data.chart);
-        } else {
-            const mockChartData = {
-                myAsset: [
-                    { date: '05-15', total: 100 }, { date: '05-20', total: 101.5 }, { date: '05-25', total: 100.8 },
-                    { date: '06-01', total: 103.2 }, { date: '06-05', total: 104.5 }, { date: '06-10', total: 106.8 }
-                ],
-                sp500: [
-                    { date: '05-15', value: 100 }, { date: '05-20', value: 100.8 }, { date: '05-25', value: 102.1 },
-                    { date: '06-01', value: 101.9 }, { date: '06-05', value: 103.4 }, { date: '06-10', value: 104.2 }
-                ]
-            };
-            renderTrendChart(mockChartData);
         }
     }
 
-    /* ── 📈 완전 정적 최적화 차트 빌더 (클릭/인터랙션 코드 완전 제거) ── */
+    /* ── 📈 실데이터 전용 정적 차트 렌더러 (날짜 매핑 및 끊김 보정 로직 내장) ── */
     function renderTrendChart(chartData) {
         const ctx = document.getElementById('trendChart').getContext('2d');
-        if (!chartData.myAsset || chartData.myAsset.length === 0) return;
         
+        // 1. x축은 매일 누적되는 '내 자산' 날짜를 기준으로 고정
         const labels = chartData.myAsset.map(item => item.date);
         const baseMyAsset = chartData.myAsset[0].total || 1;
         const myAssetRates = chartData.myAsset.map(item => ((item.total - baseMyAsset) / baseMyAsset) * 100);
         
+        // 2. S&P500 데이터를 내 자산 날짜에 맞춰 동기화 (주말/휴장일 끊김 방지 자동 패딩)
         let sp500Rates = [];
         if (chartData.sp500 && chartData.sp500.length > 0) {
             const baseSp500 = chartData.sp500[0].value || 1;
-            sp500Rates = chartData.sp500.map(item => ((item.value - baseSp500) / baseSp500) * 100);
+            let lastValidRate = 0; // 미국 주식 시장이 닫혔을 때 사용할 직전 영업일의 수익률 데이터
+
+            sp500Rates = chartData.myAsset.map(assetItem => {
+                // 내 자산 날짜의 자수 포맷과 S&P500의 날짜 포맷을 1:1 비교 매칭
+                const match = chartData.sp500.find(spItem => {
+                    const spDate = spItem.date ? spItem.date.split(' ')[0] : '';
+                    const asDate = assetItem.date ? assetItem.date.split(' ')[0] : '';
+                    return spDate === asDate;
+                });
+
+                if (match) {
+                    lastValidRate = ((match.value - baseSp500) / baseSp500) * 100;
+                    return lastValidRate;
+                } else {
+                    // 주말이거나 미국 공휴일이라 S&P500 데이터가 없으면 직전 영업일의 수익률 선을 부드럽게 유지
+                    return lastValidRate;
+                }
+            });
         }
 
         if (trendChart) trendChart.destroy();
@@ -543,7 +462,6 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                // [핵심 조치] 인터랙션 완전 비활성화 및 툴팁 삭제
                 events: [], 
                 plugins: {
                     legend: { display: false },
