@@ -11,33 +11,33 @@
     <style>
         :root {
             /* ── 녹색 계열 파스텔톤 테마 (Light Bloomberg Style) ── */
-            --bg-page:    #F2F9F6;   /* 전체 페이지 배경 (부드러운 파스텔 녹색빛 민트 화이트) */
-            --bg-card:    #FFFFFF;   /* 서머리 카드 배경 (순백색으로 깔끔하게 독립) */
+            --bg-page:    #F2F9F6;   /* 전체 페이지 배경 */
+            --bg-card:    #FFFFFF;   /* 서머리 카드 배경 */
             --bg-list:    #FFFFFF;   /* 종목 영역 배경 */
             --bg-ticker:  #FFFFFF;   /* 종목 카드 배경 */
             --bg-ticker-warn: rgba(245, 158, 11, 0.05); /* 리밸런싱 종목 배경 */
 
-            /* 직관적인 금융 전문 앱 컬러 체계 (화사한 라이트 모드 기준) */
-            --c-up:       #D32F2F;   /* 양수 수익률 (신뢰감 주는 금융 Red) */
+            /* 금융 앱 컬러 체계 */
+            --c-up:       #D32F2F;   /* 양수 수익률 */
             --c-up-sub:   #E53935;
-            --c-down:     #1565C0;   /* 음수 수익률 (안정적인 금융 Blue) */
+            --c-down:     #1565C0;   /* 음수 수익률 */
             --c-down-sub: #1E88E5;
             --c-neutral:  #78909C;   /* 보합/평균 */
 
             /* 메인 및 포인트 테마 컬러 */
-            --primary-green: #2E7D32;       /* 신뢰감을 주는 블룸버그 그린 터치 */
-            --accent-mint:   #E8F5E9;       /* 활성화 탭 등 강조용 연한 민트 파스텔 */
+            --primary-green: #2E7D32;       /* 블룸버그 그린 */
+            --accent-mint:   #E8F5E9;       /* 연한 민트 파스텔 */
             
             /* 텍스트 및 경계선 */
-            --c-text-primary:   #1A2519;    /* 깊이감 있는 딥 그린 블랙 (가독성 최상) */
-            --c-text-secondary: #4E6551;    /* 부제목 및 중간 톤 텍스트 */
-            --c-text-label:     #7A927E;    /* 옅은 라벨용 텍스트 */
+            --c-text-primary:   #1A2519;    /* 딥 그린 블랙 */
+            --c-text-secondary: #4E6551;    /* 부제목 */
+            --c-text-label:     #7A927E;    /* 라벨 */
             --c-border:         #E0EBE2;    /* 파스텔톤 경계선 */
             --c-divider:        #ECF2EE;    /* 내부 구분선 */
 
             /* 스켈레톤 로딩 색상 */
-            --skeleton-base:      #E8F0EA;  /* 스켈레톤 기본 바디 */
-            --skeleton-highlight: #F4F8F5;  /* 스켈레톤 애니메이션 하이라이트 */
+            --skeleton-base:      #E8F0EA;  
+            --skeleton-highlight: #F4F8F5;  
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -48,6 +48,8 @@
             background: var(--bg-page);
             font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", sans-serif;
             -webkit-font-smoothing: antialiased;
+            /* 모바일 브라우저 기본 pull-to-refresh 및 바운스 효과 제어 */
+            overscroll-behavior-y: contain;
         }
 
         /* ── 전체 레이아웃 ── */
@@ -59,9 +61,30 @@
             display: flex;
             flex-direction: column;
             background: var(--bg-page);
+            transition: transform 0.2s ease-out;
         }
 
         .header-fixed { flex-shrink: 0; }
+
+        /* ── 당겨서 새로고침 인디케이터 배너 ── */
+        #ptr-indicator {
+            position: absolute;
+            top: -60px;
+            left: 0;
+            right: 0;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: var(--accent-mint);
+            color: var(--primary-green);
+            font-size: 13px;
+            font-weight: 600;
+            border-bottom: 1px solid var(--c-border);
+            z-index: 40;
+            transition: transform 0.1s ease-out;
+        }
 
         /* ── 탭 바 ── */
         .tab-bar {
@@ -98,7 +121,6 @@
             background: var(--bg-card);
             border-radius: 16px;
             border: 1px solid var(--c-border);
-            /* 금융 앱 특유의 깔끔하고 부드러운 그림자 효과 */
             box-shadow:
                 0 4px 20px rgba(46, 125, 50, 0.05),
                 0 1px 3px rgba(0, 0, 0, 0.02);
@@ -130,7 +152,6 @@
         }
         .refresh-btn:active { transform: scale(0.85); background: var(--accent-mint); color: var(--primary-green); }
 
-        /* 총 평가금액 */
         .eval-label {
             font-size: 11px;
             color: var(--c-text-secondary);
@@ -148,7 +169,6 @@
             margin-bottom: 12px;
         }
 
-        /* 구분선 */
         .divider-h {
             height: 1px;
             background: var(--c-divider);
@@ -161,7 +181,6 @@
             flex-shrink: 0;
         }
 
-        /* 당일/누적 */
         .perf-row { display: flex; align-items: stretch; }
         .perf-block { flex: 1; display: flex; flex-direction: column; gap: 2px; }
         .perf-block:first-child { padding-right: 14px; }
@@ -170,7 +189,6 @@
         .perf-amount { font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.2; }
         .perf-rate   { font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; }
 
-        /* 변동 색상 정의 클래스 */
         .up-amt  { color: var(--c-up); }
         .up-rate { color: var(--c-up-sub); }
         .dn-amt  { color: var(--c-down); }
@@ -191,7 +209,6 @@
         .list-wrapper::-webkit-scrollbar { display: none; }
         .list-wrapper { scrollbar-width: none; }
 
-        /* 리스트 헤더 — sticky */
         .list-header {
             position: sticky;
             top: 0;
@@ -206,7 +223,6 @@
         .list-title { font-size: 13px; font-weight: 700; color: var(--c-text-primary); }
         .list-count { font-size: 12px; font-weight: 600; color: var(--primary-green); margin-left: 4px; background: var(--accent-mint); padding: 1px 6px; border-radius: 10px; }
 
-        /* 정렬 버튼 */
         .sort-group {
             display: flex;
             background: var(--bg-page);
@@ -244,7 +260,6 @@
         }
         .ticker-card:active { background: var(--bg-page); }
 
-        /* 리밸런싱 — 파스텔 보더 및 소프트 배경 처리 */
         .ticker-card.warn {
             border-left: 3px solid #f59e0b;
             padding-left: 13px;
@@ -255,7 +270,7 @@
         .card-down { color: var(--c-down); font-weight: 700; }
         .card-neu  { color: var(--c-neutral); }
 
-        /* ── PIN 인증 화면 (파스텔 스타일) ── */
+        /* ── PIN 인증 화면 ── */
         #auth-screen {
             position: fixed; inset: 0; z-index: 50;
             background: var(--bg-page);
@@ -291,7 +306,7 @@
         }
         .key-btn:active { background: var(--accent-mint); color: var(--primary-green); transform: scale(0.95); }
 
-        /* ── 스켈레톤 로딩 애니메이션 (Skeleton Pulse Effect) ── */
+        /* ── 스켈레톤 로딩 ── */
         @keyframes skeleton-pulse {
             0% { background-position: 100% 50%; }
             100% { background-position: 0 50%; }
@@ -306,12 +321,10 @@
             user-select: none;
         }
 
-        /* 각 요소별 스켈레톤 크기 지정 및 최적화 */
         .sk-amt   { width: 160px; height: 32px; display: inline-block; margin-top: 2px; }
         .sk-p-amt { width: 90px; height: 20px; display: inline-block; }
         .sk-p-rt  { width: 50px; height: 14px; display: inline-block; margin-top: 4px; }
 
-        /* 종목 카드 스켈레톤 배치 전용 구조 */
         .sk-card-left { display: flex; flex-direction: column; gap: 6px; flex: 1; }
         .sk-tag { width: 45px; height: 14px; }
         .sk-name { width: 140px; height: 16px; }
@@ -319,10 +332,14 @@
         .sk-card-right { display: flex; flex-direction: column; gap: 5px; align-items: flex-end; }
         .sk-cur { width: 55px; height: 16px; }
         .sk-cum { width: 45px; height: 13px; }
-
     </style>
 </head>
 <body>
+
+<div id="ptr-indicator">
+    <i id="ptr-icon" class="fa-solid fa-arrow-down"></i>
+    <span id="ptr-text">당겨서 새로고침</span>
+</div>
 
 <div id="auth-screen">
     <div class="auth-box">
@@ -353,7 +370,6 @@
 </div>
 
 <div id="main-dashboard" style="display:none;">
-
     <div class="header-fixed">
         <div class="tab-bar">
             <button onclick="switchTab('dc')" id="tab-dc" class="nav-tab active">DC 연금</button>
@@ -386,7 +402,7 @@
         </div>
     </div>
 
-    <div class="list-wrapper">
+    <div class="list-wrapper" id="list-wrapper-area">
         <div class="list-header">
             <div>
                 <span class="list-title">보유 종목</span>
@@ -400,7 +416,6 @@
         </div>
         <div id="ticker-list" class="ticker-list"></div>
     </div>
-
 </div>
 
 <script>
@@ -411,8 +426,15 @@
     let inputPin = "", allRawData = { dc: null, isa: null };
     let currentTab = 'dc', currentSortType = 'default', isAscending = false;
 
+    // 스와이프 및 Pull to Refresh 하드웨어 가속용 터치 변수
+    let startX = 0, startY = 0;
+    let currentY = 0;
+    let isPulling = false;
+    const ptrThreshold = 80; // 당겨서 새로고침 트리거 기준 높이 (px)
+
     window.onload = () => {
         if (localStorage.getItem('dashboard_auth_token') === targetToken) unlockDashboard();
+        initSwipeEvents();
     };
 
     /* ── PIN 인증 ── */
@@ -446,7 +468,7 @@
         fetchCurrentTabData();
     }
 
-    /* ── 탭 전환 개선 (즉각적 스켈레톤 적용) ── */
+    /* ── 탭 전환 개선 ── */
     function switchTab(t) {
         if (currentTab === t) return; 
         
@@ -470,13 +492,10 @@
     /* ── 스켈레톤 플레이스홀더 렌더러 ── */
     function renderSkeletonUI() {
         document.getElementById('total-eval').innerHTML = `<span class="skeleton-loading-text sk-amt"></span>`;
-        
         document.getElementById('diff-amt').innerHTML = `<span class="skeleton-loading-text sk-p-amt"></span>`;
         document.getElementById('diff-rate').innerHTML = `<span class="skeleton-loading-text sk-p-rt"></span>`;
-        
         document.getElementById('total-profit-amt').innerHTML = `<span class="skeleton-loading-text sk-p-amt"></span>`;
         document.getElementById('total-profit-rate').innerHTML = `<span class="skeleton-loading-text sk-p-rt"></span>`;
-        
         document.getElementById('item-count').innerText = '-';
 
         const list = document.getElementById('ticker-list');
@@ -498,8 +517,7 @@
                 <div class="sk-card-right">
                     <div class="skeleton-loading-text sk-cur"></div>
                     <div class="skeleton-loading-text sk-cum"></div>
-                </div>
-            `;
+                </div>`;
             list.appendChild(skCard);
         }
     }
@@ -625,6 +643,92 @@
                 </div>`;
             list.appendChild(card);
         });
+    }
+
+    /* ── 제스처 및 터치 스와이프 인터랙션 제어 엔진 ── */
+    function initSwipeEvents() {
+        const dashboard = document.getElementById('main-dashboard');
+        const listWrapper = document.getElementById('list-wrapper-area');
+        const ptrIndicator = document.getElementById('ptr-indicator');
+        const ptrIcon = document.getElementById('ptr-icon');
+        const ptrText = document.getElementById('ptr-text');
+
+        window.addEventListener('touchstart', (e) => {
+            // 보안 인증 화면이 활성화된 상태라면 스와이프를 제한함
+            if (dashboard.style.display === 'none') return;
+
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+            isPulling = false;
+        }, { passive: true });
+
+        window.addEventListener('touchmove', (e) => {
+            if (dashboard.style.display === 'none') return;
+
+            const moveX = e.touches[0].clientX;
+            currentY = e.touches[0].clientY;
+
+            const diffX = moveX - startX;
+            const diffY = currentY - startY;
+
+            // 1. Pull-to-Refresh 제어 (세로 스크롤이 하향이고 종목 리스트가 최상단에 고정되어 있을 때)
+            if (diffY > 0 && listWrapper.scrollTop === 0) {
+                // 가로 이동보다 세로 이동의 진폭이 큰 경우에만 당기기 시작함
+                if (Math.abs(diffY) > Math.abs(diffX)) {
+                    isPulling = true;
+                    // 당길 때 스무스한 마찰 저항(가속도 감쇄) 공식 적용
+                    const pullDistance = Math.min(diffY * 0.4, 110);
+                    
+                    dashboard.style.transform = `translateY(${pullDistance}px)`;
+                    ptrIndicator.style.transform = `translateY(${pullDistance}px)`;
+
+                    if (pullDistance >= ptrThreshold) {
+                        ptrIcon.className = "fa-solid fa-arrow-up rotate-180 transition-transform duration-150";
+                        ptrText.innerText = "놓아서 새로고침";
+                    } else {
+                        ptrIcon.className = "fa-solid fa-arrow-down transition-transform duration-150";
+                        ptrText.innerText = "당겨서 새로고침";
+                    }
+                    
+                    // 기본 브라우저 바운스 이벤트 무력화
+                    if (e.cancelable) e.preventDefault();
+                }
+            }
+        }, { passive: false });
+
+        window.addEventListener('touchend', (e) => {
+            if (dashboard.style.display === 'none') return;
+
+            const endX = e.changedTouches[0].clientX;
+            const endY = e.changedTouches[0].clientY;
+
+            const diffX = endX - startX;
+            const diffY = endY - startY;
+
+            // 1. Pull-to-Refresh 리셋 및 트리거 판정
+            if (isPulling) {
+                isPulling = false;
+                dashboard.style.transform = '';
+                ptrIndicator.style.transform = '';
+                
+                const finalPullDistance = Math.min(diffY * 0.4, 110);
+                if (finalPullDistance >= ptrThreshold) {
+                    fetchCurrentTabData();
+                }
+                return;
+            }
+
+            // 2. 좌/우 스와이프 탭 내비게이션 판정 (세로축 이동 흔들림 변수 최소화 필터링 포함)
+            if (Math.abs(diffX) > 70 && Math.abs(diffY) < 40) {
+                if (diffX > 0) {
+                    // 오른쪽으로 밀었을 때 -> 이전 탭(dc)으로 이동
+                    if (currentTab === 'isa') switchTab('dc');
+                } else {
+                    // 왼쪽으로 밀었을 때 -> 다음 탭(isa)으로 이동
+                    if (currentTab === 'dc') switchTab('isa');
+                }
+            }
+        }, { passive: true });
     }
 </script>
 </body>
