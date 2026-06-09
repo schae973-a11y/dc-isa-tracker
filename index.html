@@ -8,6 +8,7 @@
     <title>자산 모니터링 시스템</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             /* ── 녹색 계열 파스텔톤 테마 (Light Bloomberg Style) ── */
@@ -194,6 +195,21 @@
         .dn-rate { color: var(--c-down-sub); }
         .neu-amt, .neu-rate { color: var(--c-neutral); }
 
+        /* ── 트렌드 차트 카드 ── */
+        .chart-card {
+            margin: 10px 12px 0;
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid var(--c-border);
+            padding: 12px 14px;
+            box-shadow: 0 4px 20px rgba(46, 125, 50, 0.03);
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 130px; /* 세로 스크롤 압박 최소화 크기 */
+        }
+
         /* ── 종목 스크롤 영역 ── */
         .list-wrapper {
             flex: 1;
@@ -201,7 +217,7 @@
             -webkit-overflow-scrolling: touch;
             background: var(--bg-list);
             border-radius: 20px 20px 0 0;
-            margin-top: 14px;
+            margin-top: 12px;
             border-top: 1px solid var(--c-border);
             box-shadow: 0 -4px 16px rgba(46, 125, 50, 0.02);
         }
@@ -399,6 +415,21 @@
                 </div>
             </div>
         </div>
+
+        <div class="chart-card">
+            <div class="flex justify-between items-center mb-1.5">
+                <span class="text-[11px] font-bold text-[#4E6551] flex items-center gap-1">
+                    <i class="fa-solid fa-chart-line text-[#2E7D32]"></i> 30일 벤치마크 상대수익률 (%)
+                </span>
+                <div class="flex gap-2 text-[9px] font-semibold">
+                    <span class="flex items-center gap-1 text-[#2E7D32]"><span class="w-2 h-0.5 bg-[#2E7D32] inline-block"></span> 내 자산</span>
+                    <span class="flex items-center gap-1 text-[#42a5f5]"><span class="w-2 h-0.5 bg-[#42a5f5] inline-block"></span> S&P500 환산</span>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="trendChart"></canvas>
+            </div>
+        </div>
     </div>
 
     <div class="list-wrapper" id="list-wrapper-area">
@@ -424,6 +455,7 @@
 
     let inputPin = "", allRawData = { dc: null, isa: null };
     let currentTab = 'dc', currentSortType = 'default', isAscending = false;
+    let trendChart = null; // Chart 인스턴스 전역 관리용
 
     // 스와이프 및 Pull to Refresh 제어용 변수
     let startX = 0, startY = 0;
@@ -578,6 +610,92 @@
         );
         document.getElementById('item-count').innerText = data.items.length;
         renderList(data.items);
+        
+        // 📈 차트 데이터가 존재할 때 차트 렌더링 엔진 호출
+        if (data.chart) {
+            renderTrendChart(data.chart);
+        }
+    }
+
+    /* ── 📈 30일 누적 상대 수익률 변환 및 차트 생성 함수 ── */
+    function renderTrendChart(chartData) {
+        const ctx = document.getElementById('trendChart').getContext('2d');
+        
+        // 데이터가 불완전한 경우 방어 처리
+        if (!chartData.myAsset || chartData.myAsset.length === 0) return;
+        
+        // 차트 스케일 기준을 동일하게 맞추기 위해 x축 라벨(날짜 목록) 추출
+        const labels = chartData.myAsset.map(item => item.date);
+        
+        // 상대 수익률 계산 규칙: 30일 전 첫 기점 데이터를 0%로 잡고 누적 변동률 계산
+        const baseMyAsset = chartData.myAsset[0].total || 1;
+        const myAssetRates = chartData.myAsset.map(item => ((item.total - baseMyAsset) / baseMyAsset) * 100);
+        
+        let sp500Rates = [];
+        if (chartData.sp500 && chartData.sp500.length > 0) {
+            // 자산 일자와 동일한 날짜의 S&P500 매칭 기점 찾기
+            const baseSp500 = chartData.sp500[0].value || 1;
+            sp500Rates = chartData.sp500.map(item => ((item.value - baseSp500) / baseSp500) * 100);
+        }
+
+        // 기존 차트 인스턴스 파괴 (메모리 누수 및 잔상 방지)
+        if (trendChart) trendChart.destroy();
+
+        // 파스텔톤 경량 차트 빌드
+        trendChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: '내 자산',
+                        data: myAssetRates,
+                        borderColor: '#2E7D32', // 블룸버그 그린
+                        borderWidth: 2,
+                        pointRadius: 0,         // 모바일 가독성을 위해 포인트 제거
+                        pointHoverRadius: 4,
+                        tension: 0.2,           // 자연스러운 곡선
+                        fill: false
+                    },
+                    {
+                        label: 'S&P500 환산',
+                        data: sp500Rates,
+                        borderColor: '#42a5f5', // 파스텔 블루
+                        borderWidth: 1.5,
+                        borderDash: [4, 4],     // 벤치마크는 점선 처리
+                        pointRadius: 0,
+                        pointHoverRadius: 4,
+                        tension: 0.2,
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false } // 상단 레전드는 커스텀 HTML 영역으로 대체
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            font: { size: 9 },
+                            color: '#7A927E',
+                            maxTicksLimit: 5 // x축 라벨 조밀함 해소
+                        }
+                    },
+                    y: {
+                        grid: { color: '#ECF2EE' },
+                        ticks: {
+                            font: { size: 9 },
+                            color: '#7A927E',
+                            callback: function(value) { return value.toFixed(1) + '%'; }
+                        }
+                    }
+                }
+            }
+        });
     }
 
     /* ── 정렬 제어 ── */
