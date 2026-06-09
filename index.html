@@ -10,448 +10,535 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
-            /* 색상 토큰 — 다크 카드 위 */
-            --c-up:        #ff6b6b;   /* 양수 (빨강) — 카드 위 */
-            --c-up-sub:    #ffaaaa;   /* 양수 서브텍스트 */
-            --c-down:      #5bc8ff;   /* 음수 (밝은 파랑) — 어두운 배경에서 선명 */
-            --c-down-sub:  #99dbff;   /* 음수 서브텍스트 */
-            --c-neutral:   #8899b4;   /* 보합 */
-
-            /* 종목 카드 (흰 배경) 위 */
-            --c-up-card:   #e03535;   /* 양수 — 밝은 배경 */
-            --c-down-card: #1e6fd9;   /* 음수 — 밝은 배경 */
-            --c-cum-up:    #e03535;   /* 누적 양수 */
-            --c-cum-down:  #1e6fd9;   /* 누적 음수 */
+            --c-up:       #ff6b6b;
+            --c-up-sub:   #ffaaaa;
+            --c-down:     #5bc8ff;
+            --c-down-sub: #99dbff;
+            --c-neutral:  #8899b4;
+            --c-up-card:   #e03535;
+            --c-down-card: #1e6fd9;
+            --bg-dark:    #111c32;
         }
 
-        body {
-            background-color: #111c32 !important;
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html, body {
+            height: 100%;
+            overflow: hidden; /* 전체 페이지 스크롤 차단 */
+            background: var(--bg-dark);
             font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", sans-serif;
             -webkit-font-smoothing: antialiased;
         }
-        .tabular-nums { font-variant-numeric: tabular-nums; }
-        .flip5-container { max-width: 390px; margin: 0 auto; min-height: 100vh; }
 
-        /* ── 탭 바 — 헤더 카드와 동일 다크 배경으로 통일 ── */
-        .tab-bar {
-            background: #111c32;
-            padding: 20px 20px 0;
+        /* ── 전체 컨테이너: 뷰포트 꽉 채움, flex column ── */
+        #main-dashboard {
+            position: fixed;
+            inset: 0;
+            max-width: 390px;
+            margin: 0 auto;
             display: flex;
-            gap: 28px;
+            flex-direction: column;
+            background: var(--bg-dark);
+        }
+
+        /* ── 상단 고정 영역 (탭 + 헤더 카드) — shrink 없음 ── */
+        .header-fixed {
+            flex-shrink: 0;
+            background: var(--bg-dark);
+        }
+
+        /* ── 탭 바 ── */
+        .tab-bar {
+            padding: 14px 16px 0;
+            display: flex;
+            gap: 24px;
             border-bottom: 1px solid rgba(255,255,255,0.06);
         }
         .nav-tab {
             color: #5a6e8a;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
-            padding-bottom: 12px;
+            padding-bottom: 10px;
             position: relative;
-            transition: color 0.2s;
             background: none;
             border: none;
             cursor: pointer;
+            transition: color 0.2s;
         }
-        .nav-tab.active { color: #ffffff; }
+        .nav-tab.active { color: #fff; }
         .nav-tab.active::after {
             content: "";
             position: absolute;
             bottom: -1px; left: 0; right: 0;
             height: 2.5px;
-            background: #ffffff;
+            background: #fff;
             border-radius: 2px;
         }
 
-        /* ── 정렬 버튼 ── */
-        .sort-btn { color: #94a3b8; transition: all 0.2s; font-weight: 500; }
-        .sort-btn.active { background-color: #e5e7eb; color: #374151; font-weight: 700; }
-
-        /* ── PIN 화면 ── */
-        .pin-dot { width: 13px; height: 13px; border-radius: 50%; background-color: #e2e8f0; transition: all 0.15s; }
-        .pin-dot.active { background-color: #334155; transform: scale(1.1); }
-        .key-btn {
-            width: 68px; height: 68px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 20px; font-weight: 600;
-            border-radius: 50%;
-            background: #ffffff;
-            border: 1px solid #f1f5f9;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
-        }
-        .key-btn:active { background: #f1f5f9; }
-
-        /* ── 헤더 서머리 카드 ── */
+        /* ── 서머리 카드 ── */
         .summary-card {
+            margin: 10px 12px 0;
             background: linear-gradient(150deg, #1e2d47 0%, #131f36 55%, #0e1928 100%);
-            border-radius: 24px;
+            border-radius: 18px;
             border: 1px solid rgba(255,255,255,0.07);
-            box-shadow: 0 12px 40px rgba(5,10,30,0.35);
+            box-shadow: 0 8px 28px rgba(5,10,30,0.35);
+            padding: 12px 14px 13px;
         }
+
+        /* 타이틀 행 */
+        .card-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .card-title {
+            font-size: 10px;
+            font-weight: 700;
+            color: #5a6e8a;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .refresh-btn {
+            width: 26px; height: 26px;
+            display: flex; align-items: center; justify-content: center;
+            color: #5a6e8a;
+            background: none; border: none; cursor: pointer;
+            border-radius: 50%;
+            transition: color 0.2s, transform 0.1s;
+        }
+        .refresh-btn:active { transform: scale(0.88); }
 
         /* 총 평가금액 */
+        .eval-label {
+            font-size: 10px;
+            color: #5a6e8a;
+            font-weight: 500;
+            letter-spacing: 0.04em;
+            margin-bottom: 2px;
+        }
         .eval-number {
-            font-size: 34px;
+            font-size: 28px;
             font-weight: 800;
             letter-spacing: -0.04em;
-            color: #ffffff;
+            color: #fff;
             font-variant-numeric: tabular-nums;
+            line-height: 1.1;
+            margin-bottom: 10px;
         }
 
-        /* 구분선 (수평) */
+        /* 구분선 */
         .divider-h {
             height: 1px;
             background: linear-gradient(to right, transparent, rgba(255,255,255,0.09), transparent);
+            margin-bottom: 10px;
         }
-        /* 구분선 (수직) */
         .divider-v {
             width: 1px;
             align-self: stretch;
             background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.10), transparent);
+            flex-shrink: 0;
         }
 
         /* 당일/누적 블록 */
-        .perf-block { flex: 1; display: flex; flex-direction: column; gap: 5px; }
-        .perf-label { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; color: #5a6e8a; }
-        .perf-amount { font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.15; }
-        .perf-rate   { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+        .perf-row { display: flex; align-items: stretch; gap: 0; }
+        .perf-block { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+        .perf-block:first-child { padding-right: 12px; }
+        .perf-block:last-child  { padding-left: 12px; }
+        .perf-label  { font-size: 10px; font-weight: 600; letter-spacing: 0.06em; color: #5a6e8a; }
+        .perf-amount { font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.2; }
+        .perf-rate   { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
 
-        /* 다크 카드 위 색상 */
-        .up-amt   { color: var(--c-up); }
-        .up-rate  { color: var(--c-up-sub); }
-        .dn-amt   { color: var(--c-down); }
-        .dn-rate  { color: var(--c-down-sub); }
-        .neu-amt  { color: var(--c-neutral); }
-        .neu-rate { color: var(--c-neutral); }
+        /* 다크 카드 색상 */
+        .up-amt  { color: var(--c-up); }
+        .up-rate { color: var(--c-up-sub); }
+        .dn-amt  { color: var(--c-down); }
+        .dn-rate { color: var(--c-down-sub); }
+        .neu-amt, .neu-rate { color: var(--c-neutral); }
 
-        /* ── 종목 카드 ── */
+        /* ── 종목 리스트 영역 — 이 부분만 스크롤 ── */
+        .list-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            background: #f0f2f6;
+            border-radius: 18px 18px 0 0;
+            margin-top: 10px;
+        }
+        /* 스크롤바 숨기기 */
+        .list-wrapper::-webkit-scrollbar { display: none; }
+        .list-wrapper { scrollbar-width: none; }
+
+        .list-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: #f0f2f6;
+            padding: 12px 14px 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .list-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #374151;
+        }
+        .list-count {
+            font-size: 13px;
+            font-weight: 400;
+            color: #94a3b8;
+            margin-left: 4px;
+        }
+
+        /* 정렬 버튼 */
+        .sort-group {
+            display: flex;
+            background: rgba(0,0,0,0.07);
+            padding: 2px;
+            border-radius: 8px;
+        }
+        .sort-btn {
+            font-size: 11px;
+            font-weight: 600;
+            color: #94a3b8;
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .sort-btn.active { background: #fff; color: #374151; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+
+        /* 종목 카드 목록 */
+        .ticker-list {
+            padding: 0 12px 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* 종목 카드 */
         .ticker-card {
-            background: #ffffff;
-            border-radius: 18px;
+            background: #fff;
+            border-radius: 14px;
             border: 1px solid #eef1f6;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
-            transition: box-shadow 0.2s;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+            padding: 11px 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .ticker-card.warn {
             border-color: #fde68a;
-            background: linear-gradient(to bottom, #ffffff, #fffdf0);
-            box-shadow: 0 2px 10px rgba(251,191,36,0.10);
+            background: linear-gradient(to bottom, #fff, #fffdf0);
         }
 
-        /* 종목 카드 위 색상 */
+        /* 카드 색상 */
         .card-up   { color: var(--c-up-card); }
         .card-down { color: var(--c-down-card); }
         .card-neu  { color: #94a3b8; }
 
-        /* 리스트 영역 배경 */
-        .list-area {
-            background: #f0f2f6;
-            border-radius: 20px 20px 0 0;
-            margin-top: 16px;
-            padding: 16px 16px 40px;
+        /* ── PIN 화면 ── */
+        #auth-screen {
+            position: fixed; inset: 0; z-index: 50;
+            background: #f8fafc;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            padding: 24px;
         }
+        .auth-box {
+            background: #fff;
+            padding: 32px 28px;
+            border-radius: 28px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+            width: 100%;
+            max-width: 300px;
+            text-align: center;
+        }
+        .pin-dot { width: 12px; height: 12px; border-radius: 50%; background: #e2e8f0; transition: all 0.15s; display: inline-block; }
+        .pin-dot.active { background: #334155; transform: scale(1.15); }
+        .key-btn {
+            width: 64px; height: 64px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; font-weight: 600;
+            border-radius: 50%;
+            background: #fff;
+            border: 1px solid #f1f5f9;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+            cursor: pointer;
+        }
+        .key-btn:active { background: #f1f5f9; }
     </style>
 </head>
 <body>
 
-    <!-- ── 인증 화면 ── -->
-    <div id="auth-screen" class="fixed inset-0 bg-slate-50 z-50 flex flex-col justify-center items-center px-6">
-        <div class="bg-white p-8 rounded-[28px] shadow-sm border border-slate-100 w-full max-w-[320px] text-center">
-            <div class="mb-6"><i class="fa-solid fa-shield-halved text-slate-300 text-4xl"></i></div>
-            <h2 class="text-lg font-bold text-slate-800 mb-6">보안 인증</h2>
-            <div class="flex justify-center gap-3 mb-8">
-                <div class="pin-dot" id="dot-0"></div><div class="pin-dot" id="dot-1"></div><div class="pin-dot" id="dot-2"></div>
-                <div class="pin-dot" id="dot-3"></div><div class="pin-dot" id="dot-4"></div><div class="pin-dot" id="dot-5"></div>
-            </div>
-            <div class="grid grid-cols-3 gap-y-4 gap-x-2 justify-items-center max-w-[230px] mx-auto mb-6">
-                <button class="key-btn" onclick="pressKey('1')">1</button>
-                <button class="key-btn" onclick="pressKey('2')">2</button>
-                <button class="key-btn" onclick="pressKey('3')">3</button>
-                <button class="key-btn" onclick="pressKey('4')">4</button>
-                <button class="key-btn" onclick="pressKey('5')">5</button>
-                <button class="key-btn" onclick="pressKey('6')">6</button>
-                <button class="key-btn" onclick="pressKey('7')">7</button>
-                <button class="key-btn" onclick="pressKey('8')">8</button>
-                <button class="key-btn" onclick="pressKey('9')">9</button>
-                <button class="key-btn text-rose-400" onclick="clearPin()"><i class="fa-solid fa-trash-can text-base"></i></button>
-                <button class="key-btn" onclick="pressKey('0')">0</button>
-                <button class="key-btn text-slate-400" onclick="backspacePin()"><i class="fa-solid fa-backspace text-base"></i></button>
-            </div>
-            <label class="text-[13px] text-slate-400 font-medium cursor-pointer">
-                <input type="checkbox" id="keep-login" class="mr-1 accent-slate-600"> 자동 로그인 유지
-            </label>
+<!-- ── PIN 인증 화면 ── -->
+<div id="auth-screen">
+    <div class="auth-box">
+        <i class="fa-solid fa-shield-halved" style="font-size:28px; color:#cbd5e1; margin-bottom:20px; display:block;"></i>
+        <h2 style="font-size:16px; font-weight:700; color:#1e293b; margin-bottom:24px;">보안 인증</h2>
+        <div style="display:flex; justify-content:center; gap:12px; margin-bottom:28px;">
+            <div class="pin-dot" id="dot-0"></div><div class="pin-dot" id="dot-1"></div><div class="pin-dot" id="dot-2"></div>
+            <div class="pin-dot" id="dot-3"></div><div class="pin-dot" id="dot-4"></div><div class="pin-dot" id="dot-5"></div>
         </div>
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px 8px; justify-items:center; max-width:220px; margin:0 auto 20px;">
+            <button class="key-btn" onclick="pressKey('1')">1</button>
+            <button class="key-btn" onclick="pressKey('2')">2</button>
+            <button class="key-btn" onclick="pressKey('3')">3</button>
+            <button class="key-btn" onclick="pressKey('4')">4</button>
+            <button class="key-btn" onclick="pressKey('5')">5</button>
+            <button class="key-btn" onclick="pressKey('6')">6</button>
+            <button class="key-btn" onclick="pressKey('7')">7</button>
+            <button class="key-btn" onclick="pressKey('8')">8</button>
+            <button class="key-btn" onclick="pressKey('9')">9</button>
+            <button class="key-btn" onclick="clearPin()" style="color:#f87171;"><i class="fa-solid fa-trash-can" style="font-size:15px;"></i></button>
+            <button class="key-btn" onclick="pressKey('0')">0</button>
+            <button class="key-btn" onclick="backspacePin()" style="color:#94a3b8;"><i class="fa-solid fa-backspace" style="font-size:15px;"></i></button>
+        </div>
+        <label style="font-size:12px; color:#94a3b8; cursor:pointer;">
+            <input type="checkbox" id="keep-login" style="margin-right:4px; accent-color:#475569;"> 자동 로그인 유지
+        </label>
     </div>
+</div>
 
-    <!-- ── 메인 대시보드 ── -->
-    <div id="main-dashboard" class="flip5-container flex flex-col hidden">
+<!-- ── 메인 대시보드 ── -->
+<div id="main-dashboard" style="display:none;">
 
-        <!-- 탭 바 (다크) -->
+    <!-- 상단 고정: 탭 + 서머리 카드 -->
+    <div class="header-fixed">
+
+        <!-- 탭 바 -->
         <div class="tab-bar">
             <button onclick="switchTab('dc')" id="tab-dc" class="nav-tab active">DC 연금</button>
             <button onclick="switchTab('isa')" id="tab-isa" class="nav-tab">ISA 계좌</button>
         </div>
 
-        <!-- 헤더 카드 영역 (다크) -->
-        <div style="background:#111c32;" class="px-4 pt-5 pb-5">
-            <div class="summary-card p-5">
-
-                <!-- 타이틀 + 새로고침 -->
-                <div class="flex justify-between items-center mb-3">
-                    <span id="dashboard-title" class="text-[11px] font-bold tracking-widest uppercase" style="color:#5a6e8a;">DC 연금</span>
-                    <button onclick="fetchCurrentTabData()" id="refresh-btn"
-                        class="w-8 h-8 flex items-center justify-center rounded-full transition-all duration-200 active:scale-90"
-                        style="color:#5a6e8a;">
-                        <i id="refresh-icon" class="fa-solid fa-rotate-right text-sm"></i>
-                    </button>
+        <!-- 서머리 카드 -->
+        <div class="summary-card">
+            <div class="card-title-row">
+                <span id="dashboard-title" class="card-title">DC 연금</span>
+                <button onclick="fetchCurrentTabData()" id="refresh-btn" class="refresh-btn">
+                    <i id="refresh-icon" class="fa-solid fa-rotate-right" style="font-size:12px;"></i>
+                </button>
+            </div>
+            <p class="eval-label">총 평가금액</p>
+            <div id="total-eval" class="eval-number">₩0</div>
+            <div class="divider-h"></div>
+            <div class="perf-row">
+                <div class="perf-block">
+                    <span class="perf-label">당일 수익</span>
+                    <span id="diff-amt"  class="perf-amount neu-amt">₩0</span>
+                    <span id="diff-rate" class="perf-rate neu-rate">0.00%</span>
                 </div>
-
-                <!-- 총 평가금액 -->
-                <p class="text-[12px] font-medium mb-1" style="color:#5a6e8a; letter-spacing:0.04em;">총 평가금액</p>
-                <div id="total-eval" class="eval-number mb-5">₩0</div>
-
-                <!-- 구분선 -->
-                <div class="divider-h mb-4"></div>
-
-                <!-- 당일 | 누적 2분할 -->
-                <div class="flex items-stretch gap-0">
-
-                    <!-- 당일 수익 -->
-                    <div class="perf-block pr-4">
-                        <span class="perf-label">당일 수익</span>
-                        <span id="diff-amt"  class="perf-amount neu-amt">₩0</span>
-                        <span id="diff-rate" class="perf-rate neu-rate">0.00%</span>
-                    </div>
-
-                    <!-- 세로 구분선 -->
-                    <div class="divider-v mx-1"></div>
-
-                    <!-- 누적 수익 -->
-                    <div class="perf-block pl-4">
-                        <span class="perf-label">누적 수익</span>
-                        <span id="total-profit-amt"  class="perf-amount neu-amt">₩0</span>
-                        <span id="total-profit-rate" class="perf-rate neu-rate">0.00%</span>
-                    </div>
-
+                <div class="divider-v"></div>
+                <div class="perf-block">
+                    <span class="perf-label">누적 수익</span>
+                    <span id="total-profit-amt"  class="perf-amount neu-amt">₩0</span>
+                    <span id="total-profit-rate" class="perf-rate neu-rate">0.00%</span>
                 </div>
             </div>
         </div>
 
-        <!-- 종목 리스트 영역 (라이트) -->
-        <div class="list-area">
+    </div><!-- /header-fixed -->
 
-            <!-- 리스트 헤더 -->
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-[14px] font-bold text-slate-700">
-                    보유 종목 <span id="item-count" class="text-slate-400 font-normal ml-1">0</span>
-                </h2>
-                <div class="flex bg-gray-200/70 p-0.5 rounded-lg text-[12px]">
-                    <button onclick="changeSort('default')"    id="btn-sort-default"    class="sort-btn active px-3 py-1 rounded-md">기본</button>
-                    <button onclick="changeSort('current')"    id="btn-sort-current"    class="sort-btn px-3 py-1 rounded-md">당일</button>
-                    <button onclick="changeSort('cumulative')" id="btn-sort-cumulative" class="sort-btn px-3 py-1 rounded-md">누적</button>
-                </div>
+    <!-- 종목 스크롤 영역 -->
+    <div class="list-wrapper">
+        <div class="list-header">
+            <div>
+                <span class="list-title">보유 종목</span>
+                <span id="item-count" class="list-count">0</span>
             </div>
-
-            <!-- 종목 카드 목록 -->
-            <div id="ticker-list" class="space-y-3"></div>
+            <div class="sort-group">
+                <button onclick="changeSort('default')"    id="btn-sort-default"    class="sort-btn active">기본</button>
+                <button onclick="changeSort('current')"    id="btn-sort-current"    class="sort-btn">당일</button>
+                <button onclick="changeSort('cumulative')" id="btn-sort-cumulative" class="sort-btn">누적</button>
+            </div>
         </div>
-
+        <div id="ticker-list" class="ticker-list"></div>
     </div>
 
-    <script>
-        const dcGasUrl  = "https://script.google.com/macros/s/AKfycby8XB0dOwk5Tw7yUmQMiv0RfGOeYOjD_1uUcTA-rUYdc4YDoNME46GEK4ZhaxZ0b8hO/exec";
-        const isaGasUrl = "https://script.google.com/macros/s/AKfycbxW7zkcTspkQKcUFJrzydqh1gbLaUmQFUraHXeSXke3TC-y4xmjXoZ2F0g8Bq743QTA/exec";
-        const targetToken = "p_e2417c74";
+</div><!-- /main-dashboard -->
 
-        let inputPin = "", allRawData = { dc: null, isa: null };
-        let currentTab = 'dc', currentSortType = 'default', isAscending = false;
+<script>
+    const dcGasUrl  = "https://script.google.com/macros/s/AKfycby8XB0dOwk5Tw7yUmQMiv0RfGOeYOjD_1uUcTA-rUYdc4YDoNME46GEK4ZhaxZ0b8hO/exec";
+    const isaGasUrl = "https://script.google.com/macros/s/AKfycbxW7zkcTspkQKcUFJrzydqh1gbLaUmQFUraHXeSXke3TC-y4xmjXoZ2F0g8Bq743QTA/exec";
+    const targetToken = "p_e2417c74";
 
-        window.onload = () => {
-            if (localStorage.getItem('dashboard_auth_token') === targetToken) unlockDashboard();
+    let inputPin = "", allRawData = { dc: null, isa: null };
+    let currentTab = 'dc', currentSortType = 'default', isAscending = false;
+
+    window.onload = () => {
+        if (localStorage.getItem('dashboard_auth_token') === targetToken) unlockDashboard();
+    };
+
+    /* ── PIN ── */
+    function simpleHash(str) {
+        let h = 1729;
+        for (let i = 0; i < str.length; i++) h = Math.imul(h ^ str.charCodeAt(i), 2654435761);
+        return "p_" + (h >>> 0).toString(16);
+    }
+    function pressKey(n) {
+        if (inputPin.length < 6) {
+            inputPin += n; updatePinDots();
+            if (inputPin.length === 6) setTimeout(verifyPin, 100);
+        }
+    }
+    function backspacePin() { inputPin = inputPin.slice(0,-1); updatePinDots(); }
+    function clearPin()     { inputPin = ""; updatePinDots(); }
+    function updatePinDots() {
+        for (let i = 0; i < 6; i++)
+            document.getElementById(`dot-${i}`).classList.toggle('active', i < inputPin.length);
+    }
+    function verifyPin() {
+        if (simpleHash(inputPin) === targetToken) {
+            if (document.getElementById('keep-login').checked)
+                localStorage.setItem('dashboard_auth_token', targetToken);
+            unlockDashboard();
+        } else { clearPin(); }
+    }
+    function unlockDashboard() {
+        document.getElementById('auth-screen').style.display = 'none';
+        document.getElementById('main-dashboard').style.display = 'flex';
+        fetchCurrentTabData();
+    }
+
+    /* ── 탭 전환 ── */
+    function switchTab(t) {
+        currentTab = t;
+        document.getElementById('tab-dc').classList.toggle('active', t === 'dc');
+        document.getElementById('tab-isa').classList.toggle('active', t === 'isa');
+        document.getElementById('dashboard-title').innerText = t === 'dc' ? 'DC 연금' : 'ISA 계좌';
+        resetSortUI();
+        if (allRawData[t]) renderData(allRawData[t]);
+        else fetchCurrentTabData();
+    }
+
+    /* ── 데이터 페치 ── */
+    function fetchCurrentTabData() {
+        const icon = document.getElementById('refresh-icon');
+        const btn  = document.getElementById('refresh-btn');
+        if (icon) icon.classList.add('fa-spin');
+        if (btn)  btn.disabled = true;
+
+        const cb = 'cb_' + Date.now();
+        window[cb] = (res) => {
+            allRawData[currentTab] = res;
+            renderData(res);
+            const s = document.getElementById('s-script');
+            if (s) s.remove();
+            if (icon) icon.classList.remove('fa-spin');
+            if (btn)  btn.disabled = false;
         };
+        const s = document.createElement('script');
+        s.id  = 's-script';
+        s.src = (currentTab === 'dc' ? dcGasUrl : isaGasUrl) + "?callback=" + cb;
+        s.onerror = () => {
+            if (icon) icon.classList.remove('fa-spin');
+            if (btn)  btn.disabled = false;
+        };
+        document.body.appendChild(s);
+    }
 
-        /* ── 인증 ── */
-        function simpleHash(str) {
-            let h = 1729;
-            for (let i = 0; i < str.length; i++) h = Math.imul(h ^ str.charCodeAt(i), 2654435761);
-            return "p_" + (h >>> 0).toString(16);
+    /* ── 색상 헬퍼 ── */
+    function applyPerfColor(amtEl, rateEl, amt, rate) {
+        if (amt === 0) {
+            amtEl.className = 'perf-amount neu-amt';  amtEl.innerText = '₩0';
+            rateEl.className = 'perf-rate neu-rate';  rateEl.innerText = '0.00%';
+        } else if (amt > 0) {
+            amtEl.className = 'perf-amount up-amt';   amtEl.innerText = '+₩' + amt.toLocaleString();
+            rateEl.className = 'perf-rate up-rate';   rateEl.innerText = '+' + rate.toFixed(2) + '%';
+        } else {
+            amtEl.className = 'perf-amount dn-amt';   amtEl.innerText = '-₩' + Math.abs(amt).toLocaleString();
+            rateEl.className = 'perf-rate dn-rate';   rateEl.innerText = rate.toFixed(2) + '%';
         }
-        function pressKey(num) {
-            if (inputPin.length < 6) {
-                inputPin += num;
-                updatePinDots();
-                if (inputPin.length === 6) setTimeout(verifyPin, 100);
-            }
-        }
-        function backspacePin() { inputPin = inputPin.slice(0, -1); updatePinDots(); }
-        function clearPin()     { inputPin = ""; updatePinDots(); }
-        function updatePinDots() {
-            for (let i = 0; i < 6; i++)
-                document.getElementById(`dot-${i}`).classList.toggle('active', i < inputPin.length);
-        }
-        function verifyPin() {
-            if (simpleHash(inputPin) === targetToken) {
-                if (document.getElementById('keep-login').checked)
-                    localStorage.setItem('dashboard_auth_token', targetToken);
-                unlockDashboard();
-            } else { clearPin(); }
-        }
-        function unlockDashboard() {
-            document.getElementById('auth-screen').classList.add('hidden');
-            document.getElementById('main-dashboard').classList.remove('hidden');
-            fetchCurrentTabData();
-        }
+    }
 
-        /* ── 탭 전환 ── */
-        function switchTab(t) {
-            currentTab = t;
-            document.getElementById('tab-dc').classList.toggle('active', t === 'dc');
-            document.getElementById('tab-isa').classList.toggle('active', t === 'isa');
-            document.getElementById('dashboard-title').innerText = t === 'dc' ? 'DC 연금' : 'ISA 계좌';
-            resetSortUI();
-            if (allRawData[t]) renderData(allRawData[t]);
-            else fetchCurrentTabData();
-        }
+    /* ── 렌더 ── */
+    function renderData(data) {
+        const s = data.summary;
+        document.getElementById('total-eval').innerText = '₩' + Math.round(s.totalEval).toLocaleString();
 
-        /* ── 데이터 페치 ── */
-        function fetchCurrentTabData() {
-            const icon = document.getElementById('refresh-icon');
-            const btn  = document.getElementById('refresh-btn');
-            if (icon) icon.classList.add('fa-spin');
-            if (btn)  btn.disabled = true;
+        applyPerfColor(
+            document.getElementById('diff-amt'),
+            document.getElementById('diff-rate'),
+            Math.round(s.diffAmt || 0), parseFloat(s.diffRate || 0)
+        );
+        applyPerfColor(
+            document.getElementById('total-profit-amt'),
+            document.getElementById('total-profit-rate'),
+            Math.round(s.totalProfitAmt || 0), parseFloat(s.totalProfitRate || 0)
+        );
 
-            const cb = 'cb_' + Date.now();
-            window[cb] = (res) => {
-                allRawData[currentTab] = res;
-                renderData(res);
-                const s = document.getElementById('s-script');
-                if (s) s.remove();
-                if (icon) icon.classList.remove('fa-spin');
-                if (btn)  btn.disabled = false;
-            };
-            const s   = document.createElement('script');
-            s.id  = 's-script';
-            s.src = (currentTab === 'dc' ? dcGasUrl : isaGasUrl) + "?callback=" + cb;
-            s.onerror = () => {
-                if (icon) icon.classList.remove('fa-spin');
-                if (btn)  btn.disabled = false;
-            };
-            document.body.appendChild(s);
-        }
+        document.getElementById('item-count').innerText = data.items.length;
+        renderList(data.items);
+    }
 
-        /* ── 색상 헬퍼 (다크 카드 위) ── */
-        function applyPerfColor(amtEl, rateEl, amt, rate) {
-            if (amt === 0) {
-                amtEl.className  = 'perf-amount neu-amt';
-                rateEl.className = 'perf-rate neu-rate';
-                amtEl.innerText  = '₩0';
-                rateEl.innerText = '0.00%';
-            } else if (amt > 0) {
-                amtEl.className  = 'perf-amount up-amt';
-                rateEl.className = 'perf-rate up-rate';
-                amtEl.innerText  = '+₩' + amt.toLocaleString();
-                rateEl.innerText = '+' + rate.toFixed(2) + '%';
-            } else {
-                amtEl.className  = 'perf-amount dn-amt';
-                rateEl.className = 'perf-rate dn-rate';
-                amtEl.innerText  = '-₩' + Math.abs(amt).toLocaleString();
-                rateEl.innerText = rate.toFixed(2) + '%';
-            }
+    /* ── 정렬 ── */
+    function resetSortUI() {
+        currentSortType = 'default'; isAscending = false;
+        document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('btn-sort-default').classList.add('active');
+        document.getElementById('btn-sort-current').innerHTML = '당일';
+        document.getElementById('btn-sort-cumulative').innerHTML = '누적';
+    }
+    function changeSort(t) {
+        if (currentSortType === t) isAscending = !isAscending;
+        else { currentSortType = t; isAscending = false; }
+
+        document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('btn-sort-' + t).classList.add('active');
+
+        const arrow = `<span style="font-size:9px;">${isAscending ? '▲' : '▼'}</span>`;
+        document.getElementById('btn-sort-current').innerHTML    = t === 'current'    ? `당일 ${arrow}` : '당일';
+        document.getElementById('btn-sort-cumulative').innerHTML = t === 'cumulative' ? `누적 ${arrow}` : '누적';
+
+        if (allRawData[currentTab]) renderList(allRawData[currentTab].items);
+    }
+
+    /* ── 종목 카드 ── */
+    function renderList(items) {
+        const list = document.getElementById('ticker-list');
+        list.innerHTML = '';
+
+        let sorted = [...items];
+        if (currentSortType === 'default') {
+            sorted.sort((a,b) => (a.rebalanceStatus !== '정상' ? 0 : 1) - (b.rebalanceStatus !== '정상' ? 0 : 1));
+        } else if (currentSortType === 'current') {
+            sorted.sort((a,b) => isAscending ? a.currentRate - b.currentRate : b.currentRate - a.currentRate);
+        } else {
+            sorted.sort((a,b) => isAscending ? a.cumulativeRate - b.cumulativeRate : b.cumulativeRate - a.cumulativeRate);
         }
 
-        /* ── 렌더 ── */
-        function renderData(data) {
-            const s = data.summary;
+        sorted.forEach(item => {
+            const isW    = item.rebalanceStatus !== '정상';
+            const cur    = parseFloat(item.currentRate    || 0);
+            const cum    = parseFloat(item.cumulativeRate || 0);
+            const curCls = cur > 0 ? 'card-up' : cur < 0 ? 'card-down' : 'card-neu';
+            const cumCls = cum > 0 ? 'card-up' : cum < 0 ? 'card-down' : 'card-neu';
+            const curSign = cur >= 0 ? '+' : '';
+            const cumSign = cum >= 0 ? '+' : '';
 
-            // 총 평가금액
-            document.getElementById('total-eval').innerText = '₩' + Math.round(s.totalEval).toLocaleString();
-
-            // 당일
-            const diffAmt  = Math.round(s.diffAmt  || 0);
-            const diffRate = parseFloat(s.diffRate  || 0);
-            applyPerfColor(
-                document.getElementById('diff-amt'),
-                document.getElementById('diff-rate'),
-                diffAmt, diffRate
-            );
-
-            // 누적
-            const profitAmt  = Math.round(s.totalProfitAmt  || 0);
-            const profitRate = parseFloat(s.totalProfitRate || 0);
-            applyPerfColor(
-                document.getElementById('total-profit-amt'),
-                document.getElementById('total-profit-rate'),
-                profitAmt, profitRate
-            );
-
-            document.getElementById('item-count').innerText = data.items.length;
-            renderList(data.items);
-        }
-
-        /* ── 정렬 ── */
-        function resetSortUI() {
-            currentSortType = 'default';
-            isAscending     = false;
-            document.getElementById('btn-sort-default').classList.add('active');
-            document.getElementById('btn-sort-current').classList.remove('active');
-            document.getElementById('btn-sort-current').innerHTML = '당일';
-            document.getElementById('btn-sort-cumulative').classList.remove('active');
-            document.getElementById('btn-sort-cumulative').innerHTML = '누적';
-        }
-
-        function changeSort(t) {
-            if (currentSortType === t) isAscending = !isAscending;
-            else { currentSortType = t; isAscending = false; }
-
-            document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('btn-sort-' + t).classList.add('active');
-
-            const arrow = `<span style="font-size:9px;">${isAscending ? '▲' : '▼'}</span>`;
-            document.getElementById('btn-sort-current').innerHTML    = (t === 'current')    ? `당일 ${arrow}` : '당일';
-            document.getElementById('btn-sort-cumulative').innerHTML = (t === 'cumulative') ? `누적 ${arrow}` : '누적';
-
-            if (allRawData[currentTab]) renderList(allRawData[currentTab].items);
-        }
-
-        /* ── 종목 카드 렌더 ── */
-        function renderList(items) {
-            const list = document.getElementById('ticker-list');
-            list.innerHTML = '';
-
-            let sorted = [...items];
-            if (currentSortType === 'default') {
-                sorted.sort((a, b) => (a.rebalanceStatus !== '정상' ? 0 : 1) - (b.rebalanceStatus !== '정상' ? 0 : 1));
-            } else if (currentSortType === 'current') {
-                sorted.sort((a, b) => isAscending ? a.currentRate - b.currentRate : b.currentRate - a.currentRate);
-            } else {
-                sorted.sort((a, b) => isAscending ? a.cumulativeRate - b.cumulativeRate : b.cumulativeRate - a.cumulativeRate);
-            }
-
-            sorted.forEach(item => {
-                const isW    = item.rebalanceStatus !== '정상';
-                const cur    = parseFloat(item.currentRate    || 0);
-                const cum    = parseFloat(item.cumulativeRate || 0);
-                const curCls = cur  > 0 ? 'card-up' : cur  < 0 ? 'card-down' : 'card-neu';
-                const cumCls = cum  > 0 ? 'card-up' : cum  < 0 ? 'card-down' : 'card-neu';
-                const curSign = cur >= 0 ? '+' : '';
-                const cumSign = cum >= 0 ? '+' : '';
-
-                const card = document.createElement('div');
-                card.className = `ticker-card p-4 flex justify-between items-center ${isW ? 'warn' : ''}`;
-                card.innerHTML = `
-                    <div class="flex-1 pr-3 min-w-0">
-                        <div class="flex items-center gap-1.5 mb-1.5 flex-wrap">
-                            <span style="font-size:10px; font-weight:700; color:#94a3b8; background:#f1f5f9; padding:2px 6px; border-radius:4px; letter-spacing:0.05em; flex-shrink:0;">${item.category}</span>
-                            <span style="font-size:14px; font-weight:700; color:#1e293b; letter-spacing:-0.01em;" class="truncate">${item.name}</span>
-                            ${isW ? '<span style="font-size:9px; font-weight:800; color:#92400e; background:#fef3c7; padding:2px 6px; border-radius:4px; flex-shrink:0;">REBALANCE</span>' : ''}
-                        </div>
-                        <div style="font-size:13px; color:#94a3b8; font-weight:500; font-variant-numeric:tabular-nums;">₩${Math.round(item.evalAmt).toLocaleString()}</div>
+            const card = document.createElement('div');
+            card.className = 'ticker-card' + (isW ? ' warn' : '');
+            card.innerHTML = `
+                <div style="flex:1; min-width:0; padding-right:10px;">
+                    <div style="display:flex; align-items:center; gap:5px; margin-bottom:4px; flex-wrap:wrap;">
+                        <span style="font-size:9px; font-weight:700; color:#94a3b8; background:#f1f5f9; padding:2px 5px; border-radius:4px; letter-spacing:0.05em; flex-shrink:0;">${item.category}</span>
+                        <span style="font-size:13.5px; font-weight:700; color:#1e293b; letter-spacing:-0.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.name}</span>
+                        ${isW ? '<span style="font-size:8px; font-weight:800; color:#92400e; background:#fef3c7; padding:2px 5px; border-radius:4px; flex-shrink:0;">REBALANCE</span>' : ''}
                     </div>
-                    <div class="text-right shrink-0">
-                        <div style="font-size:15px; font-weight:800; font-variant-numeric:tabular-nums;" class="${curCls}">${curSign}${cur.toFixed(2)}%</div>
-                        <div style="font-size:12px; font-weight:600; font-variant-numeric:tabular-nums; margin-top:3px;" class="${cumCls}">${cumSign}${cum.toFixed(2)}%</div>
-                    </div>`;
-                list.appendChild(card);
-            });
-        }
-    </script>
+                    <div style="font-size:12px; color:#94a3b8; font-weight:500; font-variant-numeric:tabular-nums;">₩${Math.round(item.evalAmt).toLocaleString()}</div>
+                </div>
+                <div style="text-align:right; flex-shrink:0;">
+                    <div style="font-size:15px; font-weight:800; font-variant-numeric:tabular-nums;" class="${curCls}">${curSign}${cur.toFixed(2)}%</div>
+                    <div style="font-size:12px; font-weight:600; font-variant-numeric:tabular-nums; margin-top:2px;" class="${cumCls}">${cumSign}${cum.toFixed(2)}%</div>
+                </div>`;
+            list.appendChild(card);
+        });
+    }
+</script>
 </body>
 </html>
