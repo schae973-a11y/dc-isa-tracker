@@ -378,21 +378,42 @@
     }
 
     function renderData(data) {
-        const s = data.summary;
-        document.getElementById('total-eval').innerText = '₩' + Math.round(s.totalEval).toLocaleString();
-        applyPerfColor(document.getElementById('diff-amt'), document.getElementById('diff-rate'), Math.round(s.diffAmt || 0), parseFloat(s.diffRate || 0));
-        applyPerfColor(document.getElementById('total-profit-amt'), document.getElementById('total-profit-rate'), Math.round(s.totalProfitAmt || 0), parseFloat(s.totalProfitRate || 0));
-        document.getElementById('item-count').innerText = data.items.length;
+    if (!data) return;
+
+    const s = data.summary;
+    
+    // 기본 정보 업데이트
+    document.getElementById('total-eval').innerText = '₩' + Math.round(s.totalEval).toLocaleString();
+    
+    applyPerfColor(
+        document.getElementById('diff-amt'),
+        document.getElementById('diff-rate'),
+        Math.round(s.diffAmt || 0), 
+        parseFloat(s.diffRate || 0)
+    );
+    
+    applyPerfColor(
+        document.getElementById('total-profit-amt'),
+        document.getElementById('total-profit-rate'),
+        Math.round(s.totalProfitAmt || 0), 
+        parseFloat(s.totalProfitRate || 0)
+    );
+
+    document.getElementById('item-count').innerText = data.items ? data.items.length : 0;
+
+    // 종목 리스트 렌더링
+    if (data.items && data.items.length > 0) {
         renderList(data.items);
-        
-        if (data.chart && data.chart.myAsset && data.chart.myAsset.length > 0) {
-            renderTrendChart(data.chart);
-        }
     }
+
+    // 차트 렌더링
+    if (data.chart) {
+        renderTrendChart(data.chart);
+    }
+}
 
   function renderTrendChart(chartData) {
     console.log("%c🚀 renderTrendChart 실행 | Tab:", "color:#2E7D32;font-weight:bold", currentTab);
-    console.log("chartData keys:", Object.keys(chartData || {}));
 
     const ctx = document.getElementById('trendChart').getContext('2d');
     if (!chartData) return;
@@ -402,22 +423,22 @@
         trendChart = null; 
     }
 
-    // 모든 데이터에서 첫 번째 유효한 base 값 찾기 (스케일 문제 해결)
-    let globalBase = 1;
-    ['dc', 'isa', 'sp500', 'nasdaq', 'kospi'].forEach(key => {
-        const data = chartData[key];
-        if (data && data.length > 0) {
-            const firstVal = data[0].total || data[0].value;
-            if (firstVal && firstVal > 0) {
-                globalBase = firstVal;
-                return; // 첫 번째 유효값 발견하면 종료
-            }
-        }
-    });
-
     const isDcTab = currentTab === 'dc';
     const mainData = isDcTab ? chartData.dc : chartData.isa;
-    const labels = mainData ? mainData.map(d => d.date) : [];
+
+    if (!mainData || mainData.length === 0) return;
+
+    const labels = mainData.map(d => d.date);
+
+    // 공통 base (모든 선의 스케일 통일)
+    let globalBase = 1;
+    ['dc', 'isa', 'sp500', 'nasdaq', 'kospi'].forEach(key => {
+        const d = chartData[key];
+        if (d && d.length > 0) {
+            const v = d[0].total || d[0].value;
+            if (v && v > 0) { globalBase = v; return; }
+        }
+    });
 
     const seriesConfig = [
         { key: 'dc',     label: 'DC 연금',   color: '#1B5E20', width: 3.0 },
@@ -472,8 +493,8 @@
                 x: { grid: { display: false }, ticks: { font: { size: 9.5 }, color: '#7A927E', maxTicksLimit: 6 } },
                 y: {
                     grid: { color: '#ECF2EE' },
-                    min: -15,
-                    max: 45,
+                    min: -12,
+                    max: 42,
                     ticks: {
                         font: { size: 9.5 },
                         color: '#7A927E',
@@ -484,7 +505,6 @@
         }
     });
 }
-
     function renderList(items) {
         const list = document.getElementById('ticker-list');
         list.innerHTML = '';
