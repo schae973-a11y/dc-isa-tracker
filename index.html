@@ -402,23 +402,29 @@
         trendChart = null; 
     }
 
-    // 현재 탭의 메인 데이터
+    // 모든 데이터에서 첫 번째 유효한 base 값 찾기 (스케일 문제 해결)
+    let globalBase = 1;
+    ['dc', 'isa', 'sp500', 'nasdaq', 'kospi'].forEach(key => {
+        const data = chartData[key];
+        if (data && data.length > 0) {
+            const firstVal = data[0].total || data[0].value;
+            if (firstVal && firstVal > 0) {
+                globalBase = firstVal;
+                return; // 첫 번째 유효값 발견하면 종료
+            }
+        }
+    });
+
     const isDcTab = currentTab === 'dc';
     const mainData = isDcTab ? chartData.dc : chartData.isa;
-
-    if (!mainData || mainData.length === 0) {
-        console.warn("메인 데이터 없음");
-        return;
-    }
-
-    const labels = mainData.map(d => d.date);
+    const labels = mainData ? mainData.map(d => d.date) : [];
 
     const seriesConfig = [
         { key: 'dc',     label: 'DC 연금',   color: '#1B5E20', width: 3.0 },
         { key: 'isa',    label: 'ISA 계좌',  color: '#00796B', width: 2.8 },
-        { key: 'sp500',  label: 'S&P500',    color: '#1565C0', width: 2.1, dashed: true },
-        { key: 'nasdaq', label: 'NASDAQ',    color: '#8E24AA', width: 2.0, dashed: true },
-        { key: 'kospi',  label: 'KOSPI',     color: '#F57C00', width: 1.9, dashed: true }
+        { key: 'sp500',  label: 'S&P500',    color: '#1565C0', width: 2.0, dashed: true },
+        { key: 'nasdaq', label: 'NASDAQ',    color: '#8E24AA', width: 1.9, dashed: true },
+        { key: 'kospi',  label: 'KOSPI',     color: '#F57C00', width: 1.8, dashed: true }
     ];
 
     const datasets = [];
@@ -428,12 +434,9 @@
         const raw = chartData[cfg.key];
         if (!raw || raw.length === 0) return;
 
-        // 핵심 수정: 모든 선이 "메인 데이터(현재 탭)"의 첫 번째 값 기준으로 계산
-        const base = mainData[0].total || mainData[0].value || 1;
-        
         const rates = raw.map(item => {
             const val = item.total !== undefined ? item.total : item.value;
-            return val ? ((val / base - 1) * 100) : null;
+            return val ? ((val / globalBase - 1) * 100) : null;
         });
 
         datasets.push({
@@ -469,8 +472,8 @@
                 x: { grid: { display: false }, ticks: { font: { size: 9.5 }, color: '#7A927E', maxTicksLimit: 6 } },
                 y: {
                     grid: { color: '#ECF2EE' },
-                    min: -12,
-                    max: 42,
+                    min: -15,
+                    max: 45,
                     ticks: {
                         font: { size: 9.5 },
                         color: '#7A927E',
@@ -481,24 +484,6 @@
         }
     });
 }
-
-        function resetSortUI() {
-        currentSortType = 'default'; isAscending = false;
-        document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('btn-sort-default').classList.add('active');
-        document.getElementById('btn-sort-current').innerHTML    = '당일';
-        document.getElementById('btn-sort-cumulative').innerHTML = '누적';
-    }
-    function changeSort(t) {
-        if (currentSortType === t) isAscending = !isAscending;
-        else { currentSortType = t; isAscending = false; }
-        document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('btn-sort-' + t).classList.add('active');
-        const arrow = `<span style="font-size:8px;">${isAscending ? '▲' : '▼'}</span>`;
-        document.getElementById('btn-sort-current').innerHTML    = t === 'current'    ? `당일 ${arrow}` : '당일';
-        document.getElementById('btn-sort-cumulative').innerHTML = t === 'cumulative' ? `누적 ${arrow}` : '누적';
-        if (allRawData[currentTab]) renderList(allRawData[currentTab].items);
-    }
 
     function renderList(items) {
         const list = document.getElementById('ticker-list');
