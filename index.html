@@ -390,10 +390,9 @@
         }
     }
 
-   /* ==================== 최신 renderTrendChart (색상 + DC/ISA 구분 강화) ==================== */
+  /* ==================== 색상 구분 강화 버전 ==================== */
 function renderTrendChart(chartData) {
-    console.log("🚀 renderTrendChart 호출됨 | 현재 탭:", currentTab); // 디버깅용
-    console.log("chartData:", chartData);
+    console.log("%c🚀 renderTrendChart 실행 | Tab:", "color:#2E7D32;font-weight:bold", currentTab);
 
     const ctx = document.getElementById('trendChart').getContext('2d');
     if (!chartData) return;
@@ -404,32 +403,29 @@ function renderTrendChart(chartData) {
     }
 
     const isDcTab = currentTab === 'dc';
-    const mainAssetData = isDcTab ? (chartData.dc || []) : (chartData.isa || []);
+    const mainData = isDcTab ? chartData.dc : chartData.isa;
 
-    if (mainAssetData.length === 0) {
-        console.warn("메인 자산 데이터 없음");
-        return;
-    }
+    if (!mainData || mainData.length === 0) return;
 
-    const labels = mainAssetData.map(item => item.date);
+    const labels = mainData.map(d => d.date);
 
     const seriesConfig = [
-        { key: 'dc',     label: 'DC 연금',   color: '#2E7D32', width: 3.0 },
-        { key: 'isa',    label: 'ISA 계좌',  color: '#00695C', width: 2.8 },
-        { key: 'sp500',  label: 'S&P500',    color: '#1E88E5', width: 2.0, dashed: true },
-        { key: 'nasdaq', label: 'NASDAQ',    color: '#8E24AA', width: 1.9, dashed: true },
-        { key: 'kospi',  label: 'KOSPI',     color: '#F57C00', width: 1.7, dashed: true }
+        { key: 'dc',     label: 'DC 연금',   color: '#1B5E20', width: 3.0 },     // 진한 숲 녹색
+        { key: 'isa',    label: 'ISA 계좌',  color: '#00796B', width: 2.8 },     // 청록 (Teal)
+        { key: 'sp500',  label: 'S&P500',    color: '#1565C0', width: 2.0, dashed: true },   // 밝은 블루
+        { key: 'nasdaq', label: 'NASDAQ',    color: '#8E24AA', width: 1.9, dashed: true },   // 보라
+        { key: 'kospi',  label: 'KOSPI',     color: '#F57C00', width: 1.8, dashed: true }    // 주황
     ];
 
     const datasets = [];
     const legendItems = [];
 
     seriesConfig.forEach(cfg => {
-        const rawData = chartData[cfg.key];
-        if (!rawData || rawData.length === 0) return;
+        const raw = chartData[cfg.key];
+        if (!raw || raw.length === 0) return;
 
-        const base = rawData[0].total || rawData[0].value || 1;
-        const rates = rawData.map(item => {
+        const base = raw[0].total || raw[0].value || 1;
+        const rates = raw.map(item => {
             const val = item.total !== undefined ? item.total : item.value;
             return val ? ((val / base - 1) * 100) : null;
         });
@@ -440,22 +436,20 @@ function renderTrendChart(chartData) {
             borderColor: cfg.color,
             borderWidth: cfg.width,
             borderDash: cfg.dashed ? [4, 3] : [],
-            tension: 0.24,
+            tension: 0.25,
             pointRadius: 0,
             pointHoverRadius: 4
         });
 
         legendItems.push(`
             <span class="flex items-center gap-1 text-[10px]" style="color:${cfg.color}">
-                <span style="width:13px;height:2.5px;background:${cfg.color};${cfg.dashed ? 'border-top:2.5px dashed' : ''}"></span>
+                <span style="width:13px;height:2.5px;background:${cfg.color};${cfg.dashed?'border-top:2.5px dashed':''}"></span>
                 ${cfg.label}
             </span>
         `);
     });
 
-    // 범례 업데이트
-    const legendEl = document.getElementById('chart-legend');
-    if (legendEl) legendEl.innerHTML = legendItems.join('');
+    document.getElementById('chart-legend').innerHTML = legendItems.join('');
 
     trendChart = new Chart(ctx, {
         type: 'line',
@@ -466,11 +460,14 @@ function renderTrendChart(chartData) {
             interaction: { mode: 'index', intersect: false },
             plugins: { legend: { display: false } },
             scales: {
-                x: { grid: { display: false }, ticks: { font: { size: 9.5 }, color: '#7A927E', maxTicksLimit: 6 } },
+                x: { 
+                    grid: { display: false }, 
+                    ticks: { font: { size: 9.5 }, color: '#7A927E', maxTicksLimit: 6 } 
+                },
                 y: {
                     grid: { color: '#ECF2EE' },
-                    min: -15,
-                    max: 45,
+                    min: -12,
+                    max: 42,
                     ticks: {
                         font: { size: 9.5 },
                         color: '#7A927E',
