@@ -390,8 +390,11 @@
         }
     }
 
-    /* ==================== 최적화된 renderTrendChart ==================== */
+   /* ==================== 최신 renderTrendChart (색상 + DC/ISA 구분 강화) ==================== */
 function renderTrendChart(chartData) {
+    console.log("🚀 renderTrendChart 호출됨 | 현재 탭:", currentTab); // 디버깅용
+    console.log("chartData:", chartData);
+
     const ctx = document.getElementById('trendChart').getContext('2d');
     if (!chartData) return;
 
@@ -403,16 +406,18 @@ function renderTrendChart(chartData) {
     const isDcTab = currentTab === 'dc';
     const mainAssetData = isDcTab ? (chartData.dc || []) : (chartData.isa || []);
 
-    if (mainAssetData.length === 0) return;
+    if (mainAssetData.length === 0) {
+        console.warn("메인 자산 데이터 없음");
+        return;
+    }
 
     const labels = mainAssetData.map(item => item.date);
 
-    // 시리즈 설정
     const seriesConfig = [
-        { key: 'dc',     label: 'DC 연금',   color: '#2E7D32', width: 2.8 },
-        { key: 'isa',    label: 'ISA 계좌',  color: '#00695C', width: 2.6 },
-        { key: 'sp500',  label: 'S&P500',    color: '#1E88E5', width: 1.9, dashed: true },
-        { key: 'nasdaq', label: 'NASDAQ',    color: '#8E24AA', width: 1.8, dashed: true },
+        { key: 'dc',     label: 'DC 연금',   color: '#2E7D32', width: 3.0 },
+        { key: 'isa',    label: 'ISA 계좌',  color: '#00695C', width: 2.8 },
+        { key: 'sp500',  label: 'S&P500',    color: '#1E88E5', width: 2.0, dashed: true },
+        { key: 'nasdaq', label: 'NASDAQ',    color: '#8E24AA', width: 1.9, dashed: true },
         { key: 'kospi',  label: 'KOSPI',     color: '#F57C00', width: 1.7, dashed: true }
     ];
 
@@ -423,7 +428,6 @@ function renderTrendChart(chartData) {
         const rawData = chartData[cfg.key];
         if (!rawData || rawData.length === 0) return;
 
-        // 첫 번째 값 기준 상대수익률 (스케일 문제 해결 핵심)
         const base = rawData[0].total || rawData[0].value || 1;
         const rates = rawData.map(item => {
             const val = item.total !== undefined ? item.total : item.value;
@@ -443,7 +447,7 @@ function renderTrendChart(chartData) {
 
         legendItems.push(`
             <span class="flex items-center gap-1 text-[10px]" style="color:${cfg.color}">
-                <span style="width:12px; height:2px; background:${cfg.color}; ${cfg.dashed ? 'border-top: 2px dashed' : ''}"></span>
+                <span style="width:13px;height:2.5px;background:${cfg.color};${cfg.dashed ? 'border-top:2.5px dashed' : ''}"></span>
                 ${cfg.label}
             </span>
         `);
@@ -460,15 +464,9 @@ function renderTrendChart(chartData) {
             responsive: true,
             maintainAspectRatio: false,
             interaction: { mode: 'index', intersect: false },
-            plugins: { 
-                legend: { display: false },
-                tooltip: { mode: 'index', intersect: false }
-            },
+            plugins: { legend: { display: false } },
             scales: {
-                x: {
-                    grid: { display: false },
-                    ticks: { font: { size: 9.5 }, color: '#7A927E', maxTicksLimit: 6 }
-                },
+                x: { grid: { display: false }, ticks: { font: { size: 9.5 }, color: '#7A927E', maxTicksLimit: 6 } },
                 y: {
                     grid: { color: '#ECF2EE' },
                     min: -15,
