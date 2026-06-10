@@ -390,9 +390,9 @@
         }
     }
 
-  /* ==================== 색상 구분 강화 버전 ==================== */
-function renderTrendChart(chartData) {
+  function renderTrendChart(chartData) {
     console.log("%c🚀 renderTrendChart 실행 | Tab:", "color:#2E7D32;font-weight:bold", currentTab);
+    console.log("chartData keys:", Object.keys(chartData || {}));
 
     const ctx = document.getElementById('trendChart').getContext('2d');
     if (!chartData) return;
@@ -402,19 +402,23 @@ function renderTrendChart(chartData) {
         trendChart = null; 
     }
 
+    // 현재 탭의 메인 데이터
     const isDcTab = currentTab === 'dc';
     const mainData = isDcTab ? chartData.dc : chartData.isa;
 
-    if (!mainData || mainData.length === 0) return;
+    if (!mainData || mainData.length === 0) {
+        console.warn("메인 데이터 없음");
+        return;
+    }
 
     const labels = mainData.map(d => d.date);
 
     const seriesConfig = [
-        { key: 'dc',     label: 'DC 연금',   color: '#1B5E20', width: 3.0 },     // 진한 숲 녹색
-        { key: 'isa',    label: 'ISA 계좌',  color: '#00796B', width: 2.8 },     // 청록 (Teal)
-        { key: 'sp500',  label: 'S&P500',    color: '#1565C0', width: 2.0, dashed: true },   // 밝은 블루
-        { key: 'nasdaq', label: 'NASDAQ',    color: '#8E24AA', width: 1.9, dashed: true },   // 보라
-        { key: 'kospi',  label: 'KOSPI',     color: '#F57C00', width: 1.8, dashed: true }    // 주황
+        { key: 'dc',     label: 'DC 연금',   color: '#1B5E20', width: 3.0 },
+        { key: 'isa',    label: 'ISA 계좌',  color: '#00796B', width: 2.8 },
+        { key: 'sp500',  label: 'S&P500',    color: '#1565C0', width: 2.1, dashed: true },
+        { key: 'nasdaq', label: 'NASDAQ',    color: '#8E24AA', width: 2.0, dashed: true },
+        { key: 'kospi',  label: 'KOSPI',     color: '#F57C00', width: 1.9, dashed: true }
     ];
 
     const datasets = [];
@@ -424,7 +428,9 @@ function renderTrendChart(chartData) {
         const raw = chartData[cfg.key];
         if (!raw || raw.length === 0) return;
 
-        const base = raw[0].total || raw[0].value || 1;
+        // 핵심 수정: 모든 선이 "메인 데이터(현재 탭)"의 첫 번째 값 기준으로 계산
+        const base = mainData[0].total || mainData[0].value || 1;
+        
         const rates = raw.map(item => {
             const val = item.total !== undefined ? item.total : item.value;
             return val ? ((val / base - 1) * 100) : null;
@@ -460,10 +466,7 @@ function renderTrendChart(chartData) {
             interaction: { mode: 'index', intersect: false },
             plugins: { legend: { display: false } },
             scales: {
-                x: { 
-                    grid: { display: false }, 
-                    ticks: { font: { size: 9.5 }, color: '#7A927E', maxTicksLimit: 6 } 
-                },
+                x: { grid: { display: false }, ticks: { font: { size: 9.5 }, color: '#7A927E', maxTicksLimit: 6 } },
                 y: {
                     grid: { color: '#ECF2EE' },
                     min: -12,
