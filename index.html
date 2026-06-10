@@ -378,108 +378,122 @@
     }
 
     function renderData(data) {
-    if (!data) return;
-
-    const s = data.summary;
-    
-    // 기본 정보 업데이트
-    document.getElementById('total-eval').innerText = '₩' + Math.round(s.totalEval).toLocaleString();
-    
-    applyPerfColor(
-        document.getElementById('diff-amt'),
-        document.getElementById('diff-rate'),
-        Math.round(s.diffAmt || 0), 
-        parseFloat(s.diffRate || 0)
-    );
-    
-    applyPerfColor(
-        document.getElementById('total-profit-amt'),
-        document.getElementById('total-profit-rate'),
-        Math.round(s.totalProfitAmt || 0), 
-        parseFloat(s.totalProfitRate || 0)
-    );
-
-    document.getElementById('item-count').innerText = data.items ? data.items.length : 0;
-
-    // 종목 리스트 렌더링
-    if (data.items && data.items.length > 0) {
+        const s = data.summary;
+        document.getElementById('total-eval').innerText = '₩' + Math.round(s.totalEval).toLocaleString();
+        applyPerfColor(document.getElementById('diff-amt'), document.getElementById('diff-rate'), Math.round(s.diffAmt || 0), parseFloat(s.diffRate || 0));
+        applyPerfColor(document.getElementById('total-profit-amt'), document.getElementById('total-profit-rate'), Math.round(s.totalProfitAmt || 0), parseFloat(s.totalProfitRate || 0));
+        document.getElementById('item-count').innerText = data.items.length;
         renderList(data.items);
-    }
-
-    // 차트 렌더링
-    if (data.chart) {
-        renderTrendChart(data.chart);
-    }
-}
-
-  function renderTrendChart(chartData) {
-    console.log("%c🚀 renderTrendChart 실행 | Tab:", "color:#2E7D32;font-weight:bold", currentTab);
-
-    const ctx = document.getElementById('trendChart').getContext('2d');
-    if (!chartData) return;
-
-    if (trendChart) { 
-        trendChart.destroy(); 
-        trendChart = null; 
-    }
-
-    const isDcTab = currentTab === 'dc';
-    const mainData = isDcTab ? chartData.dc : chartData.isa;
-
-    if (!mainData || mainData.length === 0) return;
-
-    const labels = mainData.map(d => d.date);
-
-    // 공통 base (모든 선의 스케일 통일)
-    let globalBase = 1;
-    ['dc', 'isa', 'sp500', 'nasdaq', 'kospi'].forEach(key => {
-        const d = chartData[key];
-        if (d && d.length > 0) {
-            const v = d[0].total || d[0].value;
-            if (v && v > 0) { globalBase = v; return; }
+        
+        if (data.chart && data.chart.myAsset && data.chart.myAsset.length > 0) {
+            renderTrendChart(data.chart);
         }
-    });
+    }
 
-    const seriesConfig = [
-        { key: 'dc',     label: 'DC 연금',   color: '#1B5E20', width: 3.0 },
-        { key: 'isa',    label: 'ISA 계좌',  color: '#00796B', width: 2.8 },
-        { key: 'sp500',  label: 'S&P500',    color: '#1565C0', width: 2.0, dashed: true },
-        { key: 'nasdaq', label: 'NASDAQ',    color: '#8E24AA', width: 1.9, dashed: true },
-        { key: 'kospi',  label: 'KOSPI',     color: '#F57C00', width: 1.8, dashed: true }
-    ];
+    /* ── 차트 렌더 함수 ── */
+function renderTrendChart(chartData) {
+    const ctx = document.getElementById('trendChart').getContext('2d');
 
-    const datasets = [];
-    const legendItems = [];
+    // 날짜 레이블: DC 또는 ISA 중 더 긴 쪽 기준
+    const dcDates  = (chartData.dc  || []).map(d => d.date);
+    const isaDates = (chartData.isa || []).map(d => d.date);
+    const labels   = dcDates.length >= isaDates.length ? dcDates : isaDates;
 
-    seriesConfig.forEach(cfg => {
-        const raw = chartData[cfg.key];
-        if (!raw || raw.length === 0) return;
-
-        const rates = raw.map(item => {
-            const val = item.total !== undefined ? item.total : item.value;
-            return val ? ((val / globalBase - 1) * 100) : null;
+    // 수익률 계산 헬퍼
+    function toRates(arr) {
+        if (!arr || arr.length === 0) return new Array(labels.length).fill(null);
+        const base = arr[0].total || arr[0].value || 1;
+        return arr.map(item => {
+            const v = item.total !== undefined ? item.total : item.value;
+            return base > 0 && v > 0 ? ((v - base) / base) * 100 : 0;
         });
+    }
+    function toIndexRates(arr) {
+        if (!arr || arr.length === 0) return new Array(labels.length).fill(null);
+        const base = parseFloat(arr[0].value || 0);
+        return arr.map((item, i) => {
+            if (i === 0) return 0;
+            const v = parseFloat(item.value || 0);
+            return base > 0 && v > 0 ? ((v - base) / base) * 100 : 0;
+        });
+    }
 
-        datasets.push({
-            label: cfg.label,
-            data: rates,
-            borderColor: cfg.color,
-            borderWidth: cfg.width,
-            borderDash: cfg.dashed ? [4, 3] : [],
-            tension: 0.25,
+    // 데이터셋 정의
+    const gradient = ctx.createLinearGradient(0, 0, 0, 140);
+    gradient.addColorStop(0, 'rgba(46,125,50,0.10)');
+    gradient.addColorStop(1, 'rgba(232,245,233,0.01)');
+
+    const datasets = [
+        // DC 자산
+        chartData.dc && chartData.dc.length > 0 ? {
+            label: 'DC 연금',
+            data: toRates(chartData.dc),
+            borderColor: '#2E7D32',
+            borderWidth: 2.5,
+            backgroundColor: gradient,
+            fill: true,
             pointRadius: 0,
-            pointHoverRadius: 4
-        });
+            tension: 0.25
+        } : null,
+        // ISA 자산
+        chartData.isa && chartData.isa.length > 0 ? {
+            label: 'ISA',
+            data: toRates(chartData.isa),
+            borderColor: '#00897B',
+            borderWidth: 2.5,
+            backgroundColor: 'transparent',
+            fill: false,
+            pointRadius: 0,
+            tension: 0.25
+        } : null,
+        // S&P500
+        chartData.sp500 && chartData.sp500.length > 0 ? {
+            label: 'S&P500',
+            data: toIndexRates(chartData.sp500),
+            borderColor: '#1565C0',
+            borderWidth: 1.2,
+            borderDash: [5, 4],
+            pointRadius: 0,
+            tension: 0.25,
+            fill: false
+        } : null,
+        // 나스닥
+        chartData.nasdaq && chartData.nasdaq.length > 0 ? {
+            label: 'NASDAQ',
+            data: toIndexRates(chartData.nasdaq),
+            borderColor: '#6A1B9A',
+            borderWidth: 1.2,
+            borderDash: [5, 4],
+            pointRadius: 0,
+            tension: 0.25,
+            fill: false
+        } : null,
+        // 코스피
+        chartData.kospi && chartData.kospi.length > 0 ? {
+            label: 'KOSPI',
+            data: toIndexRates(chartData.kospi),
+            borderColor: '#E65100',
+            borderWidth: 1.2,
+            borderDash: [5, 4],
+            pointRadius: 0,
+            tension: 0.25,
+            fill: false
+        } : null
+    ].filter(Boolean);
 
-        legendItems.push(`
-            <span class="flex items-center gap-1 text-[10px]" style="color:${cfg.color}">
-                <span style="width:13px;height:2.5px;background:${cfg.color};${cfg.dashed?'border-top:2.5px dashed':''}"></span>
-                ${cfg.label}
-            </span>
-        `);
-    });
+    // 동적 범례 업데이트
+    const legendEl = document.getElementById('chart-legend');
+    if (legendEl) {
+        legendEl.innerHTML = datasets.map(ds => {
+            const dash = ds.borderDash ? 'border-dashed' : '';
+            return `<span class="flex items-center gap-1" style="color:${ds.borderColor}">` +
+                   `<span style="width:10px;height:0;display:inline-block;border-top:2px ${ds.borderDash ? 'dashed' : 'solid'} ${ds.borderColor};"></span>` +
+                   `${ds.label}</span>`;
+        }).join('');
+    }
 
-    document.getElementById('chart-legend').innerHTML = legendItems.join('');
+    if (trendChart) { trendChart.destroy(); trendChart = null; }
+    Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", sans-serif';
 
     trendChart = new Chart(ctx, {
         type: 'line',
@@ -487,24 +501,44 @@
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            interaction: { mode: 'index', intersect: false },
-            plugins: { legend: { display: false } },
+            events: [],
+            plugins: { legend: { display: false }, tooltip: { enabled: false } },
             scales: {
-                x: { grid: { display: false }, ticks: { font: { size: 9.5 }, color: '#7A927E', maxTicksLimit: 6 } },
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { size: 10, weight: '500' }, color: '#7A927E', maxTicksLimit: 5, maxRotation: 0, minRotation: 0 }
+                },
                 y: {
-                    grid: { color: '#ECF2EE' },
-                    min: -12,
-                    max: 42,
+                    grid: { color: 'rgba(46,125,50,0.05)', drawTicks: false },
+                    border: { display: false },
                     ticks: {
-                        font: { size: 9.5 },
-                        color: '#7A927E',
-                        callback: v => (v >= 0 ? '+' : '') + v.toFixed(0) + '%'
+                        font: { size: 10, weight: '500' }, color: '#7A927E', padding: 4,
+                        callback: v => (v >= 0 ? '+' : '') + v.toFixed(1) + '%'
                     }
                 }
             }
         }
     });
 }
+
+        function resetSortUI() {
+        currentSortType = 'default'; isAscending = false;
+        document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('btn-sort-default').classList.add('active');
+        document.getElementById('btn-sort-current').innerHTML    = '당일';
+        document.getElementById('btn-sort-cumulative').innerHTML = '누적';
+    }
+    function changeSort(t) {
+        if (currentSortType === t) isAscending = !isAscending;
+        else { currentSortType = t; isAscending = false; }
+        document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('btn-sort-' + t).classList.add('active');
+        const arrow = `<span style="font-size:8px;">${isAscending ? '▲' : '▼'}</span>`;
+        document.getElementById('btn-sort-current').innerHTML    = t === 'current'    ? `당일 ${arrow}` : '당일';
+        document.getElementById('btn-sort-cumulative').innerHTML = t === 'cumulative' ? `누적 ${arrow}` : '누적';
+        if (allRawData[currentTab]) renderList(allRawData[currentTab].items);
+    }
+
     function renderList(items) {
         const list = document.getElementById('ticker-list');
         list.innerHTML = '';
