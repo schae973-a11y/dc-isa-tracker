@@ -395,30 +395,62 @@
     }
 
     /* ── 차트 렌더 함수 ── */
+/* ── 차트 렌더 함수 ── */
 function renderTrendChart(chartData) {
     const ctx = document.getElementById('trendChart').getContext('2d');
 
-    // 날짜 레이블: DC 또는 ISA 중 더 긴 쪽 기준
-    const dcDates  = (chartData.dc  || []).map(d => d.date);
-    const isaDates = (chartData.isa || []).map(d => d.date);
-    const labels   = dcDates.length >= isaDates.length ? dcDates : isaDates;
+    // 1. 모든 날짜를 모아서 하나로 통합 (가장 중요한 수정)
+    const allDatesSet = new Set();
+    
+    if (chartData.dc)  chartData.dc.forEach(d => allDatesSet.add(d.date));
+    if (chartData.isa) chartData.isa.forEach(d => allDatesSet.add(d.date));
+    if (chartData.sp500)  chartData.sp500.forEach(d => allDatesSet.add(d.date));
+    if (chartData.nasdaq) chartData.nasdaq.forEach(d => allDatesSet.add(d.date));
+    if (chartData.kospi)  chartData.kospi.forEach(d => allDatesSet.add(d.date));
 
-    // 수익률 계산 헬퍼
-    function toRates(arr) {
-        if (!arr || arr.length === 0) return new Array(labels.length).fill(null);
-        const base = arr[0].total || arr[0].value || 1;
-        return arr.map(item => {
-            const v = item.total !== undefined ? item.total : item.value;
-            return base > 0 && v > 0 ? ((v - base) / base) * 100 : 0;
+    const labels = Array.from(allDatesSet).sort();   // 날짜 순 정렬
+
+    // 날짜 → 값 맵 생성
+    function createValueMap(arr, key = 'total') {
+        const map = {};
+        if (!arr) return map;
+        arr.forEach(item => {
+            if (item.date && item[key] !== undefined) {
+                map[item.date] = parseFloat(item[key] !== undefined ? item[key] : item.value);
+            }
+        });
+        return map;
+    }
+
+    const dcMap   = createValueMap(chartData.dc, 'total');
+    const isaMap  = createValueMap(chartData.isa, 'total');
+    const spMap   = createValueMap(chartData.sp500, 'value');
+    const nasdaqMap = createValueMap(chartData.nasdaq, 'value');
+    const kospiMap  = createValueMap(chartData.kospi, 'value');
+
+    // 수익률 계산 (날짜 기반 매핑)
+    function toRates(map, baseMap) {
+        if (Object.keys(map).length === 0) return labels.map(() => null);
+        const baseDate = labels[0];
+        const baseValue = baseMap[baseDate] || Object.values(map)[0] || 1;
+        
+        return labels.map(date => {
+            const v = map[date];
+            if (v === undefined || v <= 0) return null;
+            return baseValue > 0 ? ((v - baseValue) / baseValue) * 100 : 0;
         });
     }
-    function toIndexRates(arr) {
-        if (!arr || arr.length === 0) return new Array(labels.length).fill(null);
-        const base = parseFloat(arr[0].value || 0);
-        return arr.map((item, i) => {
+
+    function toIndexRates(map) {
+        if (Object.keys(map).length === 0) return labels.map(() => null);
+        const baseDate = labels[0];
+        const baseValue = map[baseDate] || Object.values(map)[0] || 1;
+        
+        return labels.map((date, i) => {
             if (i === 0) return 0;
-            const v = parseFloat(item.value || 0);
-            return base > 0 && v > 0 ? ((v - base) / base) * 100 : 0;
+            const v = map[date];
+            if (v === undefined || v <= 0) return null;
+            return baseValue > 0 ? ((v - baseValue) / baseValue) * 100 : 0;
         });
     }
 
@@ -431,57 +463,62 @@ function renderTrendChart(chartData) {
         // DC 자산
         chartData.dc && chartData.dc.length > 0 ? {
             label: 'DC 연금',
-            data: toRates(chartData.dc),
+            data: toRates(dcMap, dcMap),
             borderColor: '#E11D48',
             borderWidth: 2.5,
             backgroundColor: gradient,
             fill: true,
             pointRadius: 0,
-            tension: 0.15
+            tension: 0.15,
+            spanGaps: true
         } : null,
         // ISA 자산
         chartData.isa && chartData.isa.length > 0 ? {
             label: 'ISA',
-            data: toRates(chartData.isa),
+            data: toRates(isaMap, isaMap),
             borderColor: '#1E3A8A',
             borderWidth: 2.5,
             backgroundColor: 'transparent',
             fill: false,
             pointRadius: 0,
-            tension: 0.15
+            tension: 0.15,
+            spanGaps: true
         } : null,
         // S&P500
         chartData.sp500 && chartData.sp500.length > 0 ? {
             label: 'S&P500',
-            data: toIndexRates(chartData.sp500),
+            data: toIndexRates(spMap),
             borderColor: '#1565C0',
             borderWidth: 1.2,
             borderDash: [4, 4],
             pointRadius: 0,
             tension: 0.25,
-            fill: false
+            fill: false,
+            spanGaps: true
         } : null,
         // 나스닥
         chartData.nasdaq && chartData.nasdaq.length > 0 ? {
             label: 'NASDAQ',
-            data: toIndexRates(chartData.nasdaq),
+            data: toIndexRates(nasdaqMap),
             borderColor: '#6A1B9A',
             borderWidth: 1.2,
             borderDash: [4, 4],
             pointRadius: 0,
             tension: 0.25,
-            fill: false
+            fill: false,
+            spanGaps: true
         } : null,
         // 코스피
         chartData.kospi && chartData.kospi.length > 0 ? {
             label: 'KOSPI',
-            data: toIndexRates(chartData.kospi),
+            data: toIndexRates(kospiMap),
             borderColor: '#E65100',
             borderWidth: 1.2,
             borderDash: [4, 4],
             pointRadius: 0,
             tension: 0.25,
-            fill: false
+            fill: false,
+            spanGaps: true
         } : null
     ].filter(Boolean);
 
