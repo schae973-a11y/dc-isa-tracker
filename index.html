@@ -11,38 +11,36 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            /* ── 녹색 계열 파스텔톤 테마 (Light Bloomberg Style) ── */
-            --bg-page:           #F2F9F6;   
-            --bg-card:           #FFFFFF;   
-            --bg-list:           #FFFFFF;   
-            --bg-ticker:         #FFFFFF;   
-            --bg-ticker-warn:    rgba(245, 158, 11, 0.05); 
+            --bg-page:          #F0F4F2;
+            --bg-card:          #FFFFFF;
+            --bg-hero:          linear-gradient(135deg, #1B5E20 0%, #2E7D32 60%, #388E3C 100%);
+            --bg-list:          #FFFFFF;
 
-            /* 금융 앱 컬러 체계 */
-            --c-up:              #D32F2F;   
-            --c-up-sub:          #E53935;
-            --c-down:            #1565C0;   
-            --c-down-sub:        #1E88E5;
-            --c-neutral:         #78909C;   
+            --c-up:             #C62828;
+            --c-up-sub:         #E53935;
+            --c-down:           #1565C0;
+            --c-down-sub:       #1E88E5;
+            --c-neutral:        #90A4AE;
 
-            /* 메인 및 포인트 테마 컬러 */
-            --primary-green:     #2E7D32;   
-            --accent-mint:       #E8F5E9;   
-            
-            /* 텍스트 및 경계선 */
-            --c-text-primary:    #1A2519;   
-            --c-text-secondary:  #4E6551;   
-            --c-text-label:      #7A927E;   
-            --c-border:          #E0EBE2;   
-            --c-divider:         #ECF2EE;   
+            --primary:          #2E7D32;
+            --primary-light:    #E8F5E9;
+            --primary-dark:     #1B5E20;
 
-            /* 스켈레톤 로딩 색상 */
-            --skeleton-base:      #E8F0EA;
-            --skeleton-highlight: #F4F8F5;
+            --c-text-primary:   #1A2519;
+            --c-text-secondary: #546E57;
+            --c-text-label:     #8FA892;
+            --c-border:         #DDE8DF;
+            --c-divider:        #EBF2EC;
 
-            /* ── 차트용 컬러 변수만 슬림 고대비로 교체 ── */
-            --c-dc-chart:        #E11D48;   /* DC: 세련된 체리 핑크 레드 (얇아도 눈에 확 띔) */
-            --c-isa-chart:       #1E3A8A;   /* ISA: 깊고 정갈한 미드나잇 네이비 */
+            --skeleton-base:      #E2EDE4;
+            --skeleton-highlight: #F0F7F1;
+
+            /* 차트 색상 */
+            --c-dc:    #C62828;
+            --c-isa:   #1565C0;
+            --c-sp500: #78909C;
+            --c-nas:   #8D6E63;
+            --c-kos:   #F57F17;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -56,56 +54,131 @@
             overscroll-behavior-y: contain;
         }
 
-        /* ── 전체 레이아웃 ── */
         #main-dashboard {
-            position: fixed;
-            inset: 0;
-            max-width: 390px;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
+            position: fixed; inset: 0;
+            max-width: 390px; margin: 0 auto;
+            display: flex; flex-direction: column;
             background: var(--bg-page);
             transition: transform 0.2s ease-out;
         }
-
         .header-fixed { flex-shrink: 0; }
 
-        /* ── 당겨서 새로고침 인디케이터 배너 ── */
+        /* ── PTR ── */
         #ptr-indicator {
-            position: absolute;
-            top: -60px; left: 0; right: 0; height: 60px;
+            position: absolute; top: -56px; left: 0; right: 0; height: 56px;
             display: flex; align-items: center; justify-content: center; gap: 8px;
-            background: var(--accent-mint); color: var(--primary-green);
-            font-size: 13px; font-weight: 600; border-bottom: 1px solid var(--c-border);
-            z-index: 40; transition: transform 0.1s ease-out;
+            background: var(--primary-light); color: var(--primary);
+            font-size: 12px; font-weight: 600;
+            border-bottom: 1px solid var(--c-border); z-index: 40;
         }
 
         /* ── 탭 바 ── */
-        .tab-bar { padding: 16px 18px 0; display: flex; gap: 24px; background: var(--bg-page); border-bottom: 1px solid var(--c-border); }
-        .nav-tab { color: var(--c-text-label); font-size: 14px; font-weight: 600; padding-bottom: 10px; position: relative; background: none; border: none; cursor: pointer; transition: color 0.2s; letter-spacing: 0.01em; }
-        .nav-tab.active { color: var(--primary-green); font-weight: 700; }
-        .nav-tab.active::after { content: ""; position: absolute; bottom: -1px; left: 0; right: 0; height: 3px; background: var(--primary-green); border-radius: 3px; }
+        .tab-bar {
+            padding: 14px 18px 0;
+            display: flex; gap: 22px;
+            background: var(--bg-page);
+            border-bottom: 1px solid var(--c-border);
+        }
+        .nav-tab {
+            font-size: 14px; font-weight: 600;
+            color: var(--c-text-label);
+            padding-bottom: 10px;
+            position: relative; background: none; border: none; cursor: pointer;
+            transition: color 0.2s;
+        }
+        .nav-tab.active { color: var(--primary); font-weight: 700; }
+        .nav-tab.active::after {
+            content: ""; position: absolute;
+            bottom: -1px; left: 0; right: 0;
+            height: 2.5px; background: var(--primary); border-radius: 2px;
+        }
 
-        /* ── 서머리 카드 ── */
-        .summary-card { margin: 12px 12px 0; background: var(--bg-card); border-radius: 16px; border: 1px solid var(--c-border); box-shadow: 0 4px 20px rgba(46, 125, 50, 0.05), 0 1px 3px rgba(0, 0, 0, 0.02); padding: 16px 18px; }
-        .card-title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .card-title { font-size: 11px; font-weight: 700; color: var(--primary-green); letter-spacing: 0.05em; background: var(--accent-mint); padding: 2px 8px; border-radius: 4px; }
-        .refresh-btn { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; color: var(--c-text-secondary); background: var(--bg-page); border: none; cursor: pointer; border-radius: 50%; transition: all 0.15s; }
-        .refresh-btn:active { transform: scale(0.85); background: var(--accent-mint); color: var(--primary-green); }
+        /* ── 히어로 카드 (총 평가금액) ── */
+        .hero-card {
+            margin: 10px 12px 0;
+            background: var(--bg-hero);
+            border-radius: 20px;
+            padding: 18px 20px 16px;
+            box-shadow: 0 8px 28px rgba(27,94,32,0.22), 0 2px 6px rgba(0,0,0,0.08);
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-card::before {
+            content: "";
+            position: absolute; top: -30px; right: -20px;
+            width: 120px; height: 120px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.06);
+        }
+        .hero-card::after {
+            content: "";
+            position: absolute; bottom: -40px; right: 20px;
+            width: 90px; height: 90px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.04);
+        }
 
-        .eval-label { font-size: 11px; color: var(--c-text-secondary); font-weight: 500; margin-bottom: 2px; }
-        .eval-number { font-size: 28px; font-weight: 800; letter-spacing: -0.03em; color: var(--c-text-primary); line-height: 1.1; margin-bottom: 12px; }
+        .hero-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .hero-label {
+            font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+            color: rgba(255,255,255,0.6); text-transform: uppercase;
+            background: rgba(255,255,255,0.1);
+            padding: 3px 8px; border-radius: 4px;
+        }
+        .refresh-btn {
+            width: 28px; height: 28px;
+            display: flex; align-items: center; justify-content: center;
+            color: rgba(255,255,255,0.6);
+            background: rgba(255,255,255,0.1);
+            border: none; cursor: pointer; border-radius: 50%;
+            transition: all 0.15s;
+        }
+        .refresh-btn:active { transform: scale(0.85); background: rgba(255,255,255,0.2); color: #fff; }
 
-        .divider-h { height: 1px; background: var(--c-divider); margin-bottom: 12px; }
-        .divider-v { width: 1px; align-self: stretch; background: linear-gradient(to bottom, transparent, var(--c-border), transparent); flex-shrink: 0; }
+        .hero-eval-label { font-size: 11px; color: rgba(255,255,255,0.55); font-weight: 500; margin-bottom: 3px; }
+        .hero-amount {
+            font-size: 32px; font-weight: 800;
+            color: #ffffff; letter-spacing: -0.04em;
+            line-height: 1.05; font-variant-numeric: tabular-nums;
+            margin-bottom: 6px;
+        }
+        .hero-diff {
+            font-size: 13px; font-weight: 600;
+            color: rgba(255,255,255,0.75);
+            font-variant-numeric: tabular-nums;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .hero-diff.up   { color: #FFCDD2; }
+        .hero-diff.down { color: #BBDEFB; }
+        .hero-diff.neu  { color: rgba(255,255,255,0.5); }
 
-        .perf-row { display: flex; align-items: stretch; }
-        .perf-block { flex: 1; display: flex; flex-direction: column; gap: 2px; }
-        .perf-block:first-child { padding-right: 14px; }
-        .perf-block:last-child  { padding-left: 14px; }
-        .perf-label  { font-size: 11px; font-weight: 600; color: var(--c-text-secondary); }
-        .perf-amount { font-size: 16px; font-weight: 800; }
-        .perf-rate   { font-size: 11px; font-weight: 600; }
+        /* ── 수익 카드 2분할 ── */
+        .perf-row {
+            display: flex; gap: 8px;
+            margin: 8px 12px 0;
+        }
+        .perf-card {
+            flex: 1;
+            background: var(--bg-card);
+            border-radius: 14px;
+            border: 1px solid var(--c-border);
+            padding: 12px 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+        .perf-card-label {
+            font-size: 10px; font-weight: 700;
+            color: var(--c-text-label);
+            letter-spacing: 0.05em; margin-bottom: 5px;
+        }
+        .perf-card-amt {
+            font-size: 17px; font-weight: 800;
+            font-variant-numeric: tabular-nums;
+            line-height: 1.2; margin-bottom: 2px;
+        }
+        .perf-card-rate {
+            font-size: 11px; font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
 
         .up-amt  { color: var(--c-up); }
         .up-rate { color: var(--c-up-sub); }
@@ -113,66 +186,163 @@
         .dn-rate { color: var(--c-down-sub); }
         .neu-amt, .neu-rate { color: var(--c-neutral); }
 
-        /* ── 트렌드 차트 카드 ── */
-        .chart-card { margin: 10px 12px 0; background: var(--bg-card); border-radius: 16px; border: 1px solid var(--c-border); padding: 16px 16px 12px; box-shadow: 0 4px 20px rgba(46, 125, 50, 0.03); }
-        .chart-container { position: relative; width: 100%; height: 140px; }
+        /* ── 차트 카드 ── */
+        .chart-card {
+            margin: 8px 12px 0;
+            background: var(--bg-card);
+            border-radius: 14px;
+            border: 1px solid var(--c-border);
+            padding: 12px 14px 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+        .chart-header {
+            display: flex; justify-content: space-between;
+            align-items: center; margin-bottom: 8px;
+        }
+        .chart-title {
+            font-size: 10px; font-weight: 700;
+            color: var(--c-text-secondary);
+            letter-spacing: 0.04em;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .chart-legend-row {
+            display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;
+        }
+        .legend-item {
+            display: flex; align-items: center; gap: 3px;
+            font-size: 9px; font-weight: 700; letter-spacing: 0.02em;
+        }
+        .legend-line {
+            width: 12px; height: 2px; border-radius: 1px; flex-shrink: 0;
+        }
+        .chart-container { position: relative; width: 100%; height: 130px; }
 
-        /* ── 종목 스크롤 영역 ── */
-        .list-wrapper { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background: var(--bg-list); border-radius: 20px 20px 0 0; margin-top: 12px; border-top: 1px solid var(--c-border); }
+        /* ── 종목 리스트 ── */
+        .list-wrapper {
+            flex: 1; overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            background: var(--bg-list);
+            border-radius: 18px 18px 0 0;
+            margin-top: 8px;
+            border-top: 1px solid var(--c-border);
+        }
         .list-wrapper::-webkit-scrollbar { display: none; }
         .list-wrapper { scrollbar-width: none; }
 
-        .list-header { position: sticky; top: 0; z-index: 10; background: var(--bg-list); padding: 12px 16px 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--c-divider); }
-        .list-title { font-size: 13px; font-weight: 700; color: var(--c-text-primary); }
-        .list-count { font-size: 12px; font-weight: 600; color: var(--primary-green); margin-left: 4px; background: var(--accent-mint); padding: 1px 6px; border-radius: 10px; }
+        .list-header {
+            position: sticky; top: 0; z-index: 10;
+            background: var(--bg-list);
+            padding: 10px 16px 9px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--c-divider);
+        }
+        .list-title { font-size: 12px; font-weight: 700; color: var(--c-text-primary); }
+        .list-count {
+            font-size: 11px; font-weight: 700;
+            color: var(--primary); background: var(--primary-light);
+            padding: 1px 7px; border-radius: 10px; margin-left: 5px;
+        }
 
-        .sort-group { display: flex; background: var(--bg-page); padding: 2px; border-radius: 8px; border: 1px solid var(--c-border); }
-        .sort-btn { font-size: 11px; font-weight: 600; color: var(--c-text-secondary); padding: 3px 10px; border-radius: 6px; border: none; background: none; cursor: pointer; }
-        .sort-btn.active { background: var(--primary-green); color: #FFFFFF; box-shadow: 0 2px 6px rgba(46, 125, 50, 0.2); }
+        .sort-group {
+            display: flex; background: var(--bg-page);
+            padding: 2px; border-radius: 7px;
+            border: 1px solid var(--c-border);
+        }
+        .sort-btn {
+            font-size: 11px; font-weight: 600;
+            color: var(--c-text-secondary);
+            padding: 3px 10px; border-radius: 5px;
+            border: none; background: none; cursor: pointer;
+        }
+        .sort-btn.active {
+            background: var(--primary); color: #fff;
+            box-shadow: 0 1px 4px rgba(46,125,50,0.25);
+        }
 
         /* ── 종목 카드 ── */
         .ticker-list { padding: 0 0 32px; }
-        .ticker-card { display: flex; justify-content: space-between; align-items: center; padding: 13px 16px; border-bottom: 1px solid var(--c-divider); background: transparent; position: relative; }
+        .ticker-card {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 11px 16px;
+            border-bottom: 1px solid var(--c-divider);
+            background: transparent; position: relative;
+            transition: background 0.1s;
+        }
         .ticker-card:active { background: var(--bg-page); }
-        .ticker-card.warn { border-left: 3px solid #f59e0b; padding-left: 13px; background: var(--bg-ticker-warn); }
+        .ticker-card.warn {
+            border-left: 3px solid #F59E0B;
+            padding-left: 13px;
+            background: rgba(245,158,11,0.03);
+        }
 
-        .card-up   { color: var(--c-up); font-weight: 700; }
-        .card-down { color: var(--c-down); font-weight: 700; }
-        .card-neu  { color: var(--c-neutral); }
+        /* 수익률 색상 등급 */
+        .rate-up-strong { color: #B71C1C; font-weight: 800; }  /* +5% 이상 */
+        .rate-up-mid    { color: #C62828; font-weight: 700; }  /* +1~5% */
+        .rate-up-weak   { color: #E53935; font-weight: 600; }  /* 0~+1% */
+        .rate-dn-strong { color: #0D47A1; font-weight: 800; }  /* -5% 이하 */
+        .rate-dn-mid    { color: #1565C0; font-weight: 700; }  /* -1~-5% */
+        .rate-dn-weak   { color: #1E88E5; font-weight: 600; }  /* 0~-1% */
+        .rate-neu       { color: var(--c-neutral); font-weight: 600; }
 
-        /* ── PIN 인증 화면 ── */
-        #auth-screen { position: fixed; inset: 0; z-index: 50; background: var(--bg-page); display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; }
-        .auth-box { background: #FFFFFF; padding: 32px 24px; border-radius: 24px; border: 1px solid var(--c-border); box-shadow: 0 10px 30px rgba(46, 125, 50, 0.06); width: 100%; max-width: 300px; text-align: center; }
-        .pin-dot { width: 12px; height: 12px; border-radius: 50%; background: #E0EBE2; display: inline-block; transition: all 0.15s; }
-        .pin-dot.active { background: var(--primary-green); transform: scale(1.2); }
-        .key-btn { width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 600; border-radius: 50%; background: var(--bg-page); border: 1px solid var(--c-border); color: var(--c-text-primary); cursor: pointer; }
-        .key-btn:active { background: var(--accent-mint); color: var(--primary-green); transform: scale(0.95); }
+        /* ── PIN 화면 ── */
+        #auth-screen {
+            position: fixed; inset: 0; z-index: 50;
+            background: var(--bg-page);
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center; padding: 24px;
+        }
+        .auth-box {
+            background: #fff; padding: 32px 24px;
+            border-radius: 24px; border: 1px solid var(--c-border);
+            box-shadow: 0 10px 30px rgba(46,125,50,0.07);
+            width: 100%; max-width: 300px; text-align: center;
+        }
+        .pin-dot {
+            width: 12px; height: 12px; border-radius: 50%;
+            background: #DDE8DF; display: inline-block; transition: all 0.15s;
+        }
+        .pin-dot.active { background: var(--primary); transform: scale(1.2); }
+        .key-btn {
+            width: 60px; height: 60px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; font-weight: 600; border-radius: 50%;
+            background: var(--bg-page); border: 1px solid var(--c-border);
+            color: var(--c-text-primary); cursor: pointer;
+        }
+        .key-btn:active { background: var(--primary-light); color: var(--primary); transform: scale(0.95); }
 
-        /* ── 스켈레톤 로딩 ── */
-        @keyframes skeleton-pulse { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
-        .skeleton-loading-text { background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%); background-size: 200% 100%; animation: skeleton-pulse 1.5s infinite ease-in-out; border-radius: 4px; color: transparent !important; user-select: none; }
-        .sk-amt   { width: 160px; height: 32px; display: inline-block; margin-top: 2px; }
-        .sk-p-amt { width: 90px; height: 20px; display: inline-block; }
-        .sk-p-rt  { width: 50px; height: 14px; display: inline-block; margin-top: 4px; }
-        .sk-card-left { display: flex; flex-direction: column; gap: 6px; flex: 1; }
-        .sk-tag { width: 45px; height: 14px; }
-        .sk-name { width: 140px; height: 16px; }
-        .sk-eval { width: 80px; height: 13px; }
-        .sk-card-right { display: flex; flex-direction: column; gap: 5px; align-items: flex-end; }
-        .sk-cur { width: 55px; height: 16px; }
-        .sk-cum { width: 45px; height: 13px; }
+        /* ── 스켈레톤 ── */
+        @keyframes sk-pulse { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+        .skeleton-loading-text {
+            background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
+            background-size: 200% 100%;
+            animation: sk-pulse 1.4s infinite ease-in-out;
+            border-radius: 4px; color: transparent !important; user-select: none;
+        }
+        .sk-hero-amt  { width: 180px; height: 36px; display: inline-block; }
+        .sk-hero-diff { width: 120px; height: 16px; display: inline-block; margin-top: 6px; }
+        .sk-p-amt     { width: 100px; height: 20px; display: inline-block; }
+        .sk-p-rt      { width: 55px;  height: 13px; display: inline-block; margin-top: 3px; }
+        .sk-card-left { display: flex; flex-direction: column; gap: 5px; flex: 1; }
+        .sk-tag  { width: 40px; height: 13px; }
+        .sk-name { width: 130px; height: 15px; }
+        .sk-eval { width: 75px;  height: 12px; }
+        .sk-card-right { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
+        .sk-cur  { width: 52px; height: 15px; }
+        .sk-cum  { width: 44px; height: 12px; }
     </style>
 </head>
 <body>
 
 <div id="ptr-indicator">
-    <i id="ptr-icon" class="fa-solid fa-arrow-down" style="transition: transform 0.15s ease;"></i>
+    <i id="ptr-icon" class="fa-solid fa-arrow-down" style="transition: transform 0.15s;"></i>
     <span id="ptr-text">당겨서 새로고침</span>
 </div>
 
+<!-- ── PIN 인증 ── -->
 <div id="auth-screen">
     <div class="auth-box">
-        <i class="fa-solid fa-shield-halved" style="font-size:28px; color:var(--primary-green); margin-bottom:16px; display:block;"></i>
+        <i class="fa-solid fa-shield-halved" style="font-size:28px; color:var(--primary); margin-bottom:16px; display:block;"></i>
         <h2 style="font-size:16px; font-weight:700; color:var(--c-text-primary); margin-bottom:20px;">보안 인증</h2>
         <div style="display:flex; justify-content:center; gap:12px; margin-bottom:26px;">
             <div class="pin-dot" id="dot-0"></div><div class="pin-dot" id="dot-1"></div><div class="pin-dot" id="dot-2"></div>
@@ -193,49 +363,56 @@
             <button class="key-btn" onclick="backspacePin()" style="color:#5c7860;"><i class="fa-solid fa-backspace"></i></button>
         </div>
         <label style="font-size:12px; color:var(--c-text-secondary); cursor:pointer; display:inline-flex; align-items:center; gap:4px;">
-            <input type="checkbox" id="keep-login" style="accent-color:var(--primary-green); width:14px; height:14px;"> 자동 로그인 유지
+            <input type="checkbox" id="keep-login" style="accent-color:var(--primary); width:14px; height:14px;"> 자동 로그인 유지
         </label>
     </div>
 </div>
 
+<!-- ── 메인 대시보드 ── -->
 <div id="main-dashboard" style="display:none;">
     <div class="header-fixed">
+
+        <!-- 탭 -->
         <div class="tab-bar">
             <button onclick="switchTab('dc')" id="tab-dc" class="nav-tab active">DC 연금</button>
             <button onclick="switchTab('isa')" id="tab-isa" class="nav-tab">ISA 계좌</button>
         </div>
 
-        <div class="summary-card">
-            <div class="card-title-row">
-                <span id="dashboard-title" class="card-title">DC 연금</span>
+        <!-- 히어로 카드 — 총 평가금액 -->
+        <div class="hero-card">
+            <div class="hero-top">
+                <span id="dashboard-title" class="hero-label">DC 연금</span>
                 <button onclick="fetchCurrentTabData()" id="refresh-btn" class="refresh-btn">
-                    <i id="refresh-icon" class="fa-solid fa-rotate-right" style="font-size:12px;"></i>
+                    <i id="refresh-icon" class="fa-solid fa-rotate-right" style="font-size:11px;"></i>
                 </button>
             </div>
-            <p class="eval-label">총 평가금액</p>
-            <div id="total-eval" class="eval-number">₩0</div>
-            <div class="divider-h"></div>
-            <div class="perf-row">
-                <div class="perf-block">
-                    <span class="perf-label">당일 수익</span>
-                    <span id="diff-amt" class="perf-amount neu-amt">₩0</span>
-                    <span id="diff-rate" class="perf-rate  neu-rate">0.00%</span>
-                </div>
-                <div class="divider-v"></div>
-                <div class="perf-block">
-                    <span class="perf-label">누적 수익</span>
-                    <span id="total-profit-amt"  class="perf-amount neu-amt">₩0</span>
-                    <span id="total-profit-rate" class="perf-rate  neu-rate">0.00%</span>
-                </div>
+            <p class="hero-eval-label">총 평가금액</p>
+            <div id="total-eval" class="hero-amount">₩0</div>
+            <div id="diff-inline" class="hero-diff neu">—</div>
+        </div>
+
+        <!-- 수익 카드 2분할 -->
+        <div class="perf-row">
+            <div class="perf-card">
+                <div class="perf-card-label">당일 수익</div>
+                <div id="diff-amt"  class="perf-card-amt neu-amt">₩0</div>
+                <div id="diff-rate" class="perf-card-rate neu-rate">0.00%</div>
+            </div>
+            <div class="perf-card">
+                <div class="perf-card-label">누적 수익</div>
+                <div id="total-profit-amt"  class="perf-card-amt neu-amt">₩0</div>
+                <div id="total-profit-rate" class="perf-card-rate neu-rate">0.00%</div>
             </div>
         </div>
 
+        <!-- 차트 카드 -->
         <div class="chart-card">
-            <div class="flex justify-between items-center mb-3">
-                <span class="text-[11px] font-bold text-[#4E6551] flex items-center gap-1">
-                    <i class="fa-solid fa-chart-line text-[#2E7D32]"></i> 30일 벤치마크 상대수익률 (%)
+            <div class="chart-header">
+                <span class="chart-title">
+                    <i class="fa-solid fa-chart-line" style="color:var(--primary); font-size:10px;"></i>
+                    30일 상대수익률
                 </span>
-                <div id="chart-legend" class="flex gap-2 text-[10px] font-bold flex-wrap justify-end"></div>
+                <div id="chart-legend" class="chart-legend-row"></div>
             </div>
             <div class="chart-container">
                 <canvas id="trendChart"></canvas>
@@ -243,6 +420,7 @@
         </div>
     </div>
 
+    <!-- 종목 리스트 -->
     <div class="list-wrapper" id="list-wrapper-area">
         <div class="list-header">
             <div>
@@ -266,28 +444,23 @@
 
     let inputPin = "", allRawData = { dc: null, isa: null };
     let currentTab = 'dc', currentSortType = 'default', isAscending = false;
-    let trendChart = null; 
-
-    let startX = 0, startY = 0;
-    let isPulling = false;
-    const ptrThreshold = 80; 
+    let trendChart = null;
+    let startX = 0, startY = 0, isPulling = false;
+    const ptrThreshold = 80;
 
     window.onload = () => {
         if (localStorage.getItem('dashboard_auth_token') === targetToken) unlockDashboard();
         initSwipeEvents();
     };
 
+    /* ── PIN ── */
     function simpleHash(str) {
         let h = 1729;
         for (let i = 0; i < str.length; i++) h = Math.imul(h ^ str.charCodeAt(i), 2654435761);
         return "p_" + (h >>> 0).toString(16);
     }
     function pressKey(n) {
-        if (inputPin.length < 6) {
-            inputPin += n;
-            updatePinDots();
-            if (inputPin.length === 6) setTimeout(verifyPin, 100);
-        }
+        if (inputPin.length < 6) { inputPin += n; updatePinDots(); if (inputPin.length === 6) setTimeout(verifyPin, 100); }
     }
     function backspacePin() { inputPin = inputPin.slice(0,-1); updatePinDots(); }
     function clearPin()     { inputPin = ""; updatePinDots(); }
@@ -306,6 +479,7 @@
         fetchCurrentTabData();
     }
 
+    /* ── 탭 전환 ── */
     function switchTab(t) {
         if (currentTab === t) return;
         currentTab = t;
@@ -313,7 +487,6 @@
         document.getElementById('tab-isa').classList.toggle('active', t === 'isa');
         document.getElementById('dashboard-title').innerText = t === 'dc' ? 'DC 연금' : 'ISA 계좌';
         resetSortUI();
-        
         if (allRawData[t]) {
             renderSkeletonUI();
             setTimeout(() => { if (currentTab === t) renderData(allRawData[t]); }, 120);
@@ -322,247 +495,227 @@
         }
     }
 
+    /* ── 스켈레톤 ── */
     function renderSkeletonUI() {
-        document.getElementById('total-eval').innerHTML = `<span class="skeleton-loading-text sk-amt"></span>`;
-        document.getElementById('diff-amt').innerHTML = `<span class="skeleton-loading-text sk-p-amt"></span>`;
+        document.getElementById('total-eval').innerHTML = `<span class="skeleton-loading-text sk-hero-amt"></span>`;
+        document.getElementById('diff-inline').innerHTML = `<span class="skeleton-loading-text sk-hero-diff"></span>`;
+        document.getElementById('diff-inline').className = 'hero-diff neu';
+        document.getElementById('diff-amt').innerHTML  = `<span class="skeleton-loading-text sk-p-amt"></span>`;
         document.getElementById('diff-rate').innerHTML = `<span class="skeleton-loading-text sk-p-rt"></span>`;
-        document.getElementById('total-profit-amt').innerHTML = `<span class="skeleton-loading-text sk-p-amt"></span>`;
+        document.getElementById('total-profit-amt').innerHTML  = `<span class="skeleton-loading-text sk-p-amt"></span>`;
         document.getElementById('total-profit-rate').innerHTML = `<span class="skeleton-loading-text sk-p-rt"></span>`;
         document.getElementById('item-count').innerText = '-';
-
         const list = document.getElementById('ticker-list');
         list.innerHTML = '';
-        for (let i = 0; i < 4; i++) {
-            const skCard = document.createElement('div');
-            skCard.className = 'ticker-card';
-            skCard.innerHTML = `
-                <div class="sk-card-left"><div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;"><span class="skeleton-loading-text sk-tag"></span><span class="skeleton-loading-text sk-name"></span></div><div><span class="skeleton-loading-text sk-eval"></span></div></div>
-                <div class="sk-card-right"><div class="skeleton-loading-text sk-cur"></div><div class="skeleton-loading-text sk-cum"></div></div>`;
-            list.appendChild(skCard);
+        for (let i = 0; i < 5; i++) {
+            const sk = document.createElement('div');
+            sk.className = 'ticker-card';
+            sk.innerHTML = `
+                <div class="sk-card-left">
+                    <div style="display:flex;align-items:center;gap:5px;">
+                        <span class="skeleton-loading-text sk-tag"></span>
+                        <span class="skeleton-loading-text sk-name"></span>
+                    </div>
+                    <span class="skeleton-loading-text sk-eval"></span>
+                </div>
+                <div class="sk-card-right">
+                    <div class="skeleton-loading-text sk-cur"></div>
+                    <div class="skeleton-loading-text sk-cum"></div>
+                </div>`;
+            list.appendChild(sk);
         }
     }
 
+    /* ── 페치 ── */
     function fetchCurrentTabData() {
         const icon = document.getElementById('refresh-icon');
         const btn  = document.getElementById('refresh-btn');
         if (icon) icon.classList.add('fa-spin');
         if (btn)  btn.disabled = true;
-
         renderSkeletonUI();
+
         const cb = 'cb_' + Date.now();
         window[cb] = (res) => {
             allRawData[currentTab] = res;
             renderData(res);
-            const s = document.getElementById('s-script');
-            if (s) s.remove();
+            const s = document.getElementById('s-script'); if (s) s.remove();
             if (icon) icon.classList.remove('fa-spin');
             if (btn)  btn.disabled = false;
         };
         const s = document.createElement('script');
-        s.id  = 's-script';
+        s.id = 's-script';
         s.src = (currentTab === 'dc' ? dcGasUrl : isaGasUrl) + "?callback=" + cb;
-        s.onerror = () => {
-            if (icon) icon.classList.remove('fa-spin');
-            if (btn)  btn.disabled = false;
-        };
+        s.onerror = () => { if (icon) icon.classList.remove('fa-spin'); if (btn) btn.disabled = false; };
         document.body.appendChild(s);
     }
 
+    /* ── 색상 헬퍼 ── */
     function applyPerfColor(amtEl, rateEl, amt, rate) {
         if (amt === 0) {
-            amtEl.className = 'perf-amount neu-amt'; amtEl.innerText = '₩0';
-            rateEl.className = 'perf-rate neu-rate';  rateEl.innerText = '0.00%';
+            amtEl.className = 'perf-card-amt neu-amt'; amtEl.innerText = '₩0';
+            rateEl.className = 'perf-card-rate neu-rate'; rateEl.innerText = '0.00%';
         } else if (amt > 0) {
-            amtEl.className = 'perf-amount up-amt'; amtEl.innerText = '+₩' + amt.toLocaleString();
-            rateEl.className = 'perf-rate up-rate';   rateEl.innerText = '+' + rate.toFixed(2) + '%';
+            amtEl.className = 'perf-card-amt up-amt'; amtEl.innerText = '+₩' + amt.toLocaleString();
+            rateEl.className = 'perf-card-rate up-rate'; rateEl.innerText = '+' + rate.toFixed(2) + '%';
         } else {
-            amtEl.className = 'perf-amount dn-amt'; amtEl.innerText = '-₩' + Math.abs(amt).toLocaleString();
-            rateEl.className = 'perf-rate dn-rate';   rateEl.innerText = rate.toFixed(2) + '%';
+            amtEl.className = 'perf-card-amt dn-amt'; amtEl.innerText = '-₩' + Math.abs(amt).toLocaleString();
+            rateEl.className = 'perf-card-rate dn-rate'; rateEl.innerText = rate.toFixed(2) + '%';
         }
     }
 
+    /* ── 히어로 당일수익 인라인 표시 ── */
+    function renderHeroDiff(amt, rate) {
+        const el = document.getElementById('diff-inline');
+        if (amt === 0) {
+            el.className = 'hero-diff neu';
+            el.innerHTML = '<i class="fa-solid fa-minus" style="font-size:10px;"></i> 변동 없음';
+        } else if (amt > 0) {
+            el.className = 'hero-diff up';
+            el.innerHTML = `<i class="fa-solid fa-arrow-up" style="font-size:10px;"></i> +₩${amt.toLocaleString()} (+${rate.toFixed(2)}%)`;
+        } else {
+            el.className = 'hero-diff down';
+            el.innerHTML = `<i class="fa-solid fa-arrow-down" style="font-size:10px;"></i> -₩${Math.abs(amt).toLocaleString()} (${rate.toFixed(2)}%)`;
+        }
+    }
+
+    /* ── 수익률 등급별 색상 ── */
+    function getRateClass(v, prefix) {
+        // prefix: 'cur' or 'cum'
+        if (v === 0) return 'rate-neu';
+        if (v > 0) {
+            if (v >= 5)  return 'rate-up-strong';
+            if (v >= 1)  return 'rate-up-mid';
+            return 'rate-up-weak';
+        } else {
+            if (v <= -5) return 'rate-dn-strong';
+            if (v <= -1) return 'rate-dn-mid';
+            return 'rate-dn-weak';
+        }
+    }
+
+    /* ── 렌더 ── */
     function renderData(data) {
         const s = data.summary;
         document.getElementById('total-eval').innerText = '₩' + Math.round(s.totalEval).toLocaleString();
-        applyPerfColor(document.getElementById('diff-amt'), document.getElementById('diff-rate'), Math.round(s.diffAmt || 0), parseFloat(s.diffRate || 0));
-        applyPerfColor(document.getElementById('total-profit-amt'), document.getElementById('total-profit-rate'), Math.round(s.totalProfitAmt || 0), parseFloat(s.totalProfitRate || 0));
+
+        const diffAmt  = Math.round(s.diffAmt  || 0);
+        const diffRate = parseFloat(s.diffRate  || 0);
+        const profAmt  = Math.round(s.totalProfitAmt  || 0);
+        const profRate = parseFloat(s.totalProfitRate || 0);
+
+        renderHeroDiff(diffAmt, diffRate);
+        applyPerfColor(document.getElementById('diff-amt'), document.getElementById('diff-rate'), diffAmt, diffRate);
+        applyPerfColor(document.getElementById('total-profit-amt'), document.getElementById('total-profit-rate'), profAmt, profRate);
         document.getElementById('item-count').innerText = data.items.length;
         renderList(data.items);
-        
-        if (data.chart && data.chart.myAsset && data.chart.myAsset.length > 0) {
-            renderTrendChart(data.chart);
+        if (data.chart && data.chart.myAsset && data.chart.myAsset.length > 0) renderTrendChart(data.chart);
+    }
+
+    /* ── 차트 ── */
+    function renderTrendChart(chartData) {
+        const ctx = document.getElementById('trendChart').getContext('2d');
+
+        const allDatesSet = new Set();
+        ['dc','isa','sp500','nasdaq','kospi'].forEach(k => {
+            if (chartData[k]) chartData[k].forEach(d => allDatesSet.add(d.date));
+        });
+        const labels = Array.from(allDatesSet).sort();
+
+        function createMap(arr, key) {
+            const map = {};
+            if (!arr) return map;
+            arr.forEach(item => { if (item.date) map[item.date] = parseFloat(item[key] || 0); });
+            return map;
         }
-    }
+        function toRates(map) {
+            const vals = Object.values(map).filter(v => v > 0);
+            if (!vals.length) return labels.map(() => null);
+            const base = map[labels[0]] || vals[0];
+            return labels.map(d => {
+                const v = map[d];
+                return (v && v > 0 && base > 0) ? ((v - base) / base) * 100 : null;
+            });
+        }
+        function toIndexRates(map) {
+            const vals = Object.values(map).filter(v => v > 0);
+            if (!vals.length) return labels.map(() => null);
+            const base = map[labels[0]] || vals[0];
+            return labels.map((d, i) => {
+                if (i === 0) return 0;
+                const v = map[d];
+                return (v && v > 0 && base > 0) ? ((v - base) / base) * 100 : null;
+            });
+        }
 
-    /* ── 차트 렌더 함수 ── */
-/* ── 차트 렌더 함수 ── */
-function renderTrendChart(chartData) {
-    const ctx = document.getElementById('trendChart').getContext('2d');
+        const dcMap     = createMap(chartData.dc,     'total');
+        const isaMap    = createMap(chartData.isa,    'total');
+        const spMap     = createMap(chartData.sp500,  'value');
+        const nasdaqMap = createMap(chartData.nasdaq, 'value');
+        const kospiMap  = createMap(chartData.kospi,  'value');
 
-    // 1. 모든 날짜를 모아서 하나로 통합 (가장 중요한 수정)
-    const allDatesSet = new Set();
-    
-    if (chartData.dc)  chartData.dc.forEach(d => allDatesSet.add(d.date));
-    if (chartData.isa) chartData.isa.forEach(d => allDatesSet.add(d.date));
-    if (chartData.sp500)  chartData.sp500.forEach(d => allDatesSet.add(d.date));
-    if (chartData.nasdaq) chartData.nasdaq.forEach(d => allDatesSet.add(d.date));
-    if (chartData.kospi)  chartData.kospi.forEach(d => allDatesSet.add(d.date));
+        // 0% 기준선용 어노테이션 플러그인 대신 직접 borderColor로 처리
+        const COLORS = {
+            dc:     '#C62828',
+            isa:    '#1565C0',
+            sp500:  '#90A4AE',
+            nasdaq: '#BCAAA4',
+            kospi:  '#F57F17'
+        };
 
-    const labels = Array.from(allDatesSet).sort();   // 날짜 순 정렬
+        const datasets = [
+            chartData.dc  && chartData.dc.length  ? { label:'DC',     data:toRates(dcMap),       borderColor:COLORS.dc,     borderWidth:2.5, fill:false, pointRadius:0, tension:0.2, spanGaps:true } : null,
+            chartData.isa && chartData.isa.length  ? { label:'ISA',    data:toRates(isaMap),      borderColor:COLORS.isa,    borderWidth:2.5, fill:false, pointRadius:0, tension:0.2, spanGaps:true } : null,
+            chartData.sp500   && chartData.sp500.length   ? { label:'S&P500', data:toIndexRates(spMap),     borderColor:COLORS.sp500,  borderWidth:1.2, borderDash:[4,4], fill:false, pointRadius:0, tension:0.2, spanGaps:true } : null,
+            chartData.nasdaq  && chartData.nasdaq.length  ? { label:'NASDAQ', data:toIndexRates(nasdaqMap), borderColor:COLORS.nasdaq, borderWidth:1.2, borderDash:[4,4], fill:false, pointRadius:0, tension:0.2, spanGaps:true } : null,
+            chartData.kospi   && chartData.kospi.length   ? { label:'KOSPI',  data:toIndexRates(kospiMap),  borderColor:COLORS.kospi,  borderWidth:1.2, borderDash:[4,4], fill:false, pointRadius:0, tension:0.2, spanGaps:true } : null,
+        ].filter(Boolean);
 
-    // 날짜 → 값 맵 생성
-    function createValueMap(arr, key = 'total') {
-        const map = {};
-        if (!arr) return map;
-        arr.forEach(item => {
-            if (item.date && item[key] !== undefined) {
-                map[item.date] = parseFloat(item[key] !== undefined ? item[key] : item.value);
-            }
-        });
-        return map;
-    }
+        // 범례
+        const legendEl = document.getElementById('chart-legend');
+        if (legendEl) {
+            legendEl.innerHTML = datasets.map(ds =>
+                `<span class="legend-item" style="color:${ds.borderColor}">` +
+                `<span class="legend-line" style="background:${ds.borderColor};${ds.borderDash?'background:repeating-linear-gradient(to right,'+ds.borderColor+' 0,'+ds.borderColor+' 4px,transparent 4px,transparent 8px);':''}"></span>` +
+                `${ds.label}</span>`
+            ).join('');
+        }
 
-    const dcMap   = createValueMap(chartData.dc, 'total');
-    const isaMap  = createValueMap(chartData.isa, 'total');
-    const spMap   = createValueMap(chartData.sp500, 'value');
-    const nasdaqMap = createValueMap(chartData.nasdaq, 'value');
-    const kospiMap  = createValueMap(chartData.kospi, 'value');
+        if (trendChart) { trendChart.destroy(); trendChart = null; }
+        Chart.defaults.font.family = '-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard",sans-serif';
 
-    // 수익률 계산 (날짜 기반 매핑)
-    function toRates(map, baseMap) {
-        if (Object.keys(map).length === 0) return labels.map(() => null);
-        const baseDate = labels[0];
-        const baseValue = baseMap[baseDate] || Object.values(map)[0] || 1;
-        
-        return labels.map(date => {
-            const v = map[date];
-            if (v === undefined || v <= 0) return null;
-            return baseValue > 0 ? ((v - baseValue) / baseValue) * 100 : 0;
-        });
-    }
-
-    function toIndexRates(map) {
-        if (Object.keys(map).length === 0) return labels.map(() => null);
-        const baseDate = labels[0];
-        const baseValue = map[baseDate] || Object.values(map)[0] || 1;
-        
-        return labels.map((date, i) => {
-            if (i === 0) return 0;
-            const v = map[date];
-            if (v === undefined || v <= 0) return null;
-            return baseValue > 0 ? ((v - baseValue) / baseValue) * 100 : 0;
-        });
-    }
-
-    // 데이터셋 정의
-    const gradient = ctx.createLinearGradient(0, 0, 0, 140);
-    gradient.addColorStop(0, 'rgba(46,125,50,0.10)');
-    gradient.addColorStop(1, 'rgba(232,245,233,0.01)');
-
-    const datasets = [
-        // DC 자산
-        chartData.dc && chartData.dc.length > 0 ? {
-            label: 'DC 연금',
-            data: toRates(dcMap, dcMap),
-            borderColor: '#E11D48',
-            borderWidth: 2.5,
-            backgroundColor: gradient,
-            fill: true,
-            pointRadius: 0,
-            tension: 0.15,
-            spanGaps: true
-        } : null,
-        // ISA 자산
-        chartData.isa && chartData.isa.length > 0 ? {
-            label: 'ISA',
-            data: toRates(isaMap, isaMap),
-            borderColor: '#1E3A8A',
-            borderWidth: 2.5,
-            backgroundColor: 'transparent',
-            fill: false,
-            pointRadius: 0,
-            tension: 0.15,
-            spanGaps: true
-        } : null,
-        // S&P500
-        chartData.sp500 && chartData.sp500.length > 0 ? {
-            label: 'S&P500',
-            data: toIndexRates(spMap),
-            borderColor: '#1565C0',
-            borderWidth: 1.2,
-            borderDash: [4, 4],
-            pointRadius: 0,
-            tension: 0.25,
-            fill: false,
-            spanGaps: true
-        } : null,
-        // 나스닥
-        chartData.nasdaq && chartData.nasdaq.length > 0 ? {
-            label: 'NASDAQ',
-            data: toIndexRates(nasdaqMap),
-            borderColor: '#6A1B9A',
-            borderWidth: 1.2,
-            borderDash: [4, 4],
-            pointRadius: 0,
-            tension: 0.25,
-            fill: false,
-            spanGaps: true
-        } : null,
-        // 코스피
-        chartData.kospi && chartData.kospi.length > 0 ? {
-            label: 'KOSPI',
-            data: toIndexRates(kospiMap),
-            borderColor: '#E65100',
-            borderWidth: 1.2,
-            borderDash: [4, 4],
-            pointRadius: 0,
-            tension: 0.25,
-            fill: false,
-            spanGaps: true
-        } : null
-    ].filter(Boolean);
-
-    // 동적 범례 업데이트
-    const legendEl = document.getElementById('chart-legend');
-    if (legendEl) {
-        legendEl.innerHTML = datasets.map(ds => {
-            const dash = ds.borderDash ? 'border-dashed' : '';
-            return `<span class="flex items-center gap-1" style="color:${ds.borderColor}">` +
-                   `<span style="width:10px;height:0;display:inline-block;border-top:2px ${ds.borderDash ? 'dashed' : 'solid'} ${ds.borderColor};"></span>` +
-                   `${ds.label}</span>`;
-        }).join('');
-    }
-
-    if (trendChart) { trendChart.destroy(); trendChart = null; }
-    Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", sans-serif';
-
-    trendChart = new Chart(ctx, {
-        type: 'line',
-        data: { labels, datasets },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            events: [],
-            plugins: { legend: { display: false }, tooltip: { enabled: false } },
-            scales: {
-                x: {
-                    grid: { display: false },
-                    ticks: { font: { size: 10, weight: '500' }, color: '#7A927E', maxTicksLimit: 5, maxRotation: 0, minRotation: 0 }
-                },
-                y: {
-                    grid: { color: 'rgba(46,125,50,0.05)', drawTicks: false },
-                    border: { display: false },
-                    ticks: {
-                        font: { size: 10, weight: '500' }, color: '#7A927E', padding: 4,
-                        callback: v => (v >= 0 ? '+' : '') + v.toFixed(1) + '%'
+        trendChart = new Chart(ctx, {
+            type: 'line',
+            data: { labels, datasets },
+            options: {
+                responsive: true, maintainAspectRatio: false, events: [],
+                plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { font:{size:9,weight:'600'}, color:'#8FA892', maxTicksLimit:5, maxRotation:0 }
+                    },
+                    y: {
+                        grid: {
+                            color: ctx2 => ctx2.tick.value === 0
+                                ? 'rgba(0,0,0,0.15)'   // 0% 기준선 강조
+                                : 'rgba(46,125,50,0.05)',
+                            lineWidth: ctx2 => ctx2.tick.value === 0 ? 1.5 : 1,
+                            drawTicks: false
+                        },
+                        border: { display: false },
+                        ticks: {
+                            font:{size:9,weight:'600'}, color:'#8FA892', padding:4,
+                            maxTicksLimit: 5,
+                            callback: v => (v >= 0 ? '+' : '') + v.toFixed(0) + '%'
+                        }
                     }
                 }
             }
-        }
-    });
-}
+        });
+    }
 
-        function resetSortUI() {
+    /* ── 정렬 ── */
+    function resetSortUI() {
         currentSortType = 'default'; isAscending = false;
         document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('btn-sort-default').classList.add('active');
@@ -575,11 +728,12 @@ function renderTrendChart(chartData) {
         document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('btn-sort-' + t).classList.add('active');
         const arrow = `<span style="font-size:8px;">${isAscending ? '▲' : '▼'}</span>`;
-        document.getElementById('btn-sort-current').innerHTML    = t === 'current'    ? `당일 ${arrow}` : '당일';
-        document.getElementById('btn-sort-cumulative').innerHTML = t === 'cumulative' ? `누적 ${arrow}` : '누적';
+        document.getElementById('btn-sort-current').innerHTML    = t==='current'    ? `당일 ${arrow}` : '당일';
+        document.getElementById('btn-sort-cumulative').innerHTML = t==='cumulative' ? `누적 ${arrow}` : '누적';
         if (allRawData[currentTab]) renderList(allRawData[currentTab].items);
     }
 
+    /* ── 종목 카드 ── */
     function renderList(items) {
         const list = document.getElementById('ticker-list');
         list.innerHTML = '';
@@ -594,77 +748,77 @@ function renderTrendChart(chartData) {
         }
 
         sorted.forEach(item => {
-            const isW    = item.rebalanceStatus !== '정상';
-            const cur    = parseFloat(item.currentRate    || 0);
-            const cum    = parseFloat(item.cumulativeRate || 0);
-            const curCls = cur > 0 ? 'card-up' : cur < 0 ? 'card-down' : 'card-neu';
-            const cumCls = cum > 0 ? 'card-up' : cum < 0 ? 'card-down' : 'card-neu';
+            const isW  = item.rebalanceStatus !== '정상';
+            const cur  = parseFloat(item.currentRate    || 0);
+            const cum  = parseFloat(item.cumulativeRate || 0);
+            const curCls = getRateClass(cur);
+            const cumCls = getRateClass(cum);
+            const curSign = cur >= 0 ? '+' : '';
+            const cumSign = cum >= 0 ? '+' : '';
+
             const card = document.createElement('div');
             card.className = 'ticker-card' + (isW ? ' warn' : '');
             card.innerHTML = `
                 <div style="flex:1; min-width:0; padding-right:10px;">
-                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px; flex-wrap:wrap;">
-                        <span style="font-size:9px; font-weight:700; color:var(--primary-green); background:var(--accent-mint); padding:1px 5px; border-radius:3px; flex-shrink:0;">${item.category}</span>
+                    <div style="display:flex; align-items:center; gap:5px; margin-bottom:4px; flex-wrap:wrap;">
+                        <span style="font-size:9px; font-weight:700; color:var(--primary); background:var(--primary-light); padding:1px 5px; border-radius:3px; flex-shrink:0; letter-spacing:0.03em;">${item.category}</span>
                         <span style="font-size:13px; font-weight:600; color:var(--c-text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.name}</span>
                     </div>
                     <div style="display:flex; align-items:center; gap:6px;">
-                        <span style="font-size:11px; color:var(--c-text-secondary); font-weight:500;">₩${Math.round(item.evalAmt).toLocaleString()}</span>
-                        ${isW ? '<span style="font-size:9px; font-weight:700; color:#d97706;"><i class="fa-solid fa-triangle-exclamation" style="font-size:8px; margin-right:2px;"></i>리밸런싱</span>' : ''}
+                        <span style="font-size:12px; color:var(--c-text-secondary); font-weight:500; font-variant-numeric:tabular-nums;">₩${Math.round(item.evalAmt).toLocaleString()}</span>
+                        ${isW ? '<span style="font-size:9px; font-weight:700; color:#D97706;"><i class="fa-solid fa-triangle-exclamation" style="font-size:8px; margin-right:2px;"></i>리밸런싱</span>' : ''}
                     </div>
                 </div>
-                <div style="text-align:right; flex-shrink:0;">
-                    <div style="font-size:14px; font-weight:800;" class="${curCls}">${cur >= 0 ? '+' : ''}${cur.toFixed(2)}%</div>
-                    <div style="font-size:11px; font-weight:600; margin-top:1px;" class="${cumCls}">${cum >= 0 ? '+' : ''}${cum.toFixed(2)}%</div>
+                <div style="text-align:right; flex-shrink:0; min-width:60px;">
+                    <div style="font-size:14px; font-variant-numeric:tabular-nums;" class="${curCls}">${curSign}${cur.toFixed(2)}%</div>
+                    <div style="font-size:11px; font-variant-numeric:tabular-nums; margin-top:2px;" class="${cumCls}">${cumSign}${cum.toFixed(2)}%</div>
                 </div>`;
             list.appendChild(card);
         });
     }
 
+    /* ── 스와이프 & PTR ── */
     function initSwipeEvents() {
-        const dashboard = document.getElementById('main-dashboard');
+        const dashboard   = document.getElementById('main-dashboard');
         const listWrapper = document.getElementById('list-wrapper-area');
-        const ptrIndicator = document.getElementById('ptr-indicator');
-        const ptrIcon = document.getElementById('ptr-icon');
-        const ptrText = document.getElementById('ptr-text');
+        const ptrEl       = document.getElementById('ptr-indicator');
+        const ptrIcon     = document.getElementById('ptr-icon');
+        const ptrText     = document.getElementById('ptr-text');
 
-        window.addEventListener('touchstart', (e) => {
+        window.addEventListener('touchstart', e => {
             if (dashboard.style.display === 'none') return;
             startX = e.touches[0].clientX; startY = e.touches[0].clientY; isPulling = false;
         }, { passive: true });
 
-        window.addEventListener('touchmove', (e) => {
+        window.addEventListener('touchmove', e => {
             if (dashboard.style.display === 'none') return;
-            const moveX = e.touches[0].clientX; const currentY = e.touches[0].clientY;
-            const diffX = moveX - startX; const diffY = currentY - startY;
-
-            if (Math.abs(diffX) > 30 && Math.abs(diffY) < 50) { if (e.cancelable) e.preventDefault(); }
-            if (diffY > 0 && listWrapper.scrollTop <= 0) {
-                if (Math.abs(diffY) > Math.abs(diffX)) {
-                    isPulling = true;
-                    const pullDistance = Math.min(diffY * 0.4, 110);
-                    dashboard.style.transform = `translateY(${pullDistance}px)`;
-                    ptrIndicator.style.transform = `translateY(${pullDistance}px)`;
-                    if (pullDistance >= ptrThreshold) { ptrIcon.style.transform = 'rotate(180deg)'; ptrText.innerText = "놓아서 새로고침"; }
-                    else { ptrIcon.style.transform = 'rotate(0deg)'; ptrText.innerText = "당겨서 새로고침"; }
-                    if (e.cancelable) e.preventDefault();
-                }
+            const dx = e.touches[0].clientX - startX;
+            const dy = e.touches[0].clientY - startY;
+            if (Math.abs(dx) > 30 && Math.abs(dy) < 50) { if (e.cancelable) e.preventDefault(); return; }
+            if (dy > 0 && listWrapper.scrollTop <= 0 && Math.abs(dy) > Math.abs(dx)) {
+                isPulling = true;
+                const pd = Math.min(dy * 0.4, 110);
+                dashboard.style.transform = `translateY(${pd}px)`;
+                ptrEl.style.transform     = `translateY(${pd}px)`;
+                ptrIcon.style.transform   = pd >= ptrThreshold ? 'rotate(180deg)' : 'rotate(0deg)';
+                ptrText.innerText         = pd >= ptrThreshold ? '놓아서 새로고침' : '당겨서 새로고침';
+                if (e.cancelable) e.preventDefault();
             }
         }, { passive: false });
 
-        window.addEventListener('touchend', (e) => {
+        window.addEventListener('touchend', e => {
             if (dashboard.style.display === 'none') return;
-            const endX = e.changedTouches[0].clientX; const endY = e.changedTouches[0].clientY;
-            const diffX = endX - startX; const diffY = endY - startY;
-
+            const dx = e.changedTouches[0].clientX - startX;
+            const dy = e.changedTouches[0].clientY - startY;
             if (isPulling) {
-                isPulling = false; dashboard.style.transform = ''; ptrIndicator.style.transform = ''; ptrIcon.style.transform = '';
-                const finalPullDistance = Math.min(diffY * 0.4, 110);
-                if (finalPullDistance >= ptrThreshold) fetchCurrentTabData();
+                isPulling = false;
+                dashboard.style.transform = ''; ptrEl.style.transform = ''; ptrIcon.style.transform = '';
+                if (Math.min(dy * 0.4, 110) >= ptrThreshold) fetchCurrentTabData();
                 return;
             }
-            if (Math.abs(diffX) > 60 && Math.abs(diffY) < 65) {
-                if (diffX < -60) { if (currentTab === 'dc') switchTab('isa'); }
-                else if (diffX > 60) { if (currentTab === 'isa') switchTab('dc'); }
+            if (Math.abs(dx) > 60 && Math.abs(dy) < 65) {
+                if (dx < -60 && currentTab === 'dc') switchTab('isa');
+                else if (dx > 60 && currentTab === 'isa') switchTab('dc');
             }
         }, { passive: true });
     }
