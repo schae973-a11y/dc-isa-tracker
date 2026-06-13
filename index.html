@@ -653,11 +653,11 @@
         gradientFill.addColorStop(1, 'rgba(46,125,50,0.00)');
 
         const datasets = [
-            chartData.dc && chartData.dc.length ? { label:'DC', data:toRates(dcMap), borderColor:COLORS.dc, borderWidth:2.2, fill:true, backgroundColor:gradientFill, pointRadius:0, tension:0.2, spanGaps:true } : null,
-            chartData.isa && chartData.isa.length ? { label:'ISA', data:toRates(isaMap), borderColor:COLORS.isa, borderWidth:2.2, fill:false, pointRadius:0, tension:0.2, spanGaps:true } : null,
+            chartData.dc && chartData.dc.length ? { label:'DC', data:toRates(dcMap), borderColor:COLORS.dc, borderWidth:2.8, fill:true, backgroundColor:gradientFill, pointRadius:0, tension:0.2, spanGaps:true } : null,
+            chartData.isa && chartData.isa.length ? { label:'ISA', data:toRates(isaMap), borderColor:COLORS.isa, borderWidth:2.5, fill:false, pointRadius:0, tension:0.2, spanGaps:true } : null,
             chartData.sp500 && chartData.sp500.length ? { label:'S&P500', data:toIndexRates(spMap), borderColor:COLORS.sp500, borderWidth:1, borderDash:[3,3], fill:false, pointRadius:0, tension:0.2, spanGaps:true } : null,
             chartData.nasdaq && chartData.nasdaq.length ? { label:'NASDAQ', data:toIndexRates(nasdaqMap), borderColor:COLORS.nasdaq, borderWidth:1, borderDash:[3,3], fill:false, pointRadius:0, tension:0.2, spanGaps:true } : null,
-            chartData.kospi && chartData.kospi.length ? { label:'KOSPI', data:toIndexRates(kospiMap), borderColor:COLORS.kospi, borderWidth:1, borderDash:[3,3], fill:false, pointRadius:0, tension:0.2, spanGaps:true } : null,
+            chartData.kospi && chartData.kospi.length ? { label:'KOSPI', data:toIndexRates(kospiMap), borderColor:COLORS.kospi, borderWidth:1.1, borderDash:[4,2], fill:false, pointRadius:0, tension:0.2, spanGaps:true } : null,
         ].filter(Boolean);
 
         const legendEl = document.getElementById('chart-legend');
@@ -672,6 +672,46 @@
         if (trendChart) { trendChart.destroy(); trendChart = null; }
         Chart.defaults.font.family = '-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard",sans-serif';
 
+        // ==================== y축 스마트 범위 계산 ====================
+        let allValues = [];
+        let primaryValues = [];
+
+        if (dcMap) {
+            const rates = toRates(dcMap).filter(v => v !== null);
+            primaryValues.push(...rates);
+            allValues.push(...rates);
+        }
+        if (isaMap) {
+            const rates = toRates(isaMap).filter(v => v !== null);
+            primaryValues.push(...rates);
+            allValues.push(...rates);
+        }
+
+        ['sp500', 'nasdaq', 'kospi'].forEach(key => {
+            const map = key === 'sp500' ? spMap : key === 'nasdaq' ? nasdaqMap : kospiMap;
+            if (map) {
+                const rates = toIndexRates(map).filter(v => v !== null);
+                allValues.push(...rates);
+            }
+        });
+
+        if (primaryValues.length === 0) return;
+
+        const primaryMin = Math.min(...primaryValues);
+        const primaryMax = Math.max(...primaryValues);
+        const allMin = allValues.length ? Math.min(...allValues) : primaryMin;
+        const allMax = allValues.length ? Math.max(...allValues) : primaryMax;
+
+        let yMin = Math.min(primaryMin, allMin * 0.92);
+        let yMax = Math.max(primaryMax, allMax * 1.08);
+
+        const primaryRange = primaryMax - primaryMin;
+        const padding = Math.max(primaryRange * 0.18, 5);
+
+        yMin = Math.floor(yMin - padding);
+        yMax = Math.ceil(yMax + padding);
+
+        // ==================== Chart 생성 ====================
         trendChart = new Chart(ctx, {
             type: 'line',
             data: { labels, datasets },
@@ -684,22 +724,18 @@
                         ticks: { font:{size:9,weight:'600'}, color:'#8FA892', maxTicksLimit:5, maxRotation:0 }
                     },
                     y: {
+                        min: yMin,
+                        max: yMax,
                         grid: {
                             color: ctx2 => ctx2.tick.value === 0 ? 'rgba(0,0,0,0.12)' : 'rgba(46,125,50,0.04)',
                             lineWidth: ctx2 => ctx2.tick.value === 0 ? 1.2 : 1,
                             drawTicks: false
                         },
                         border: { display: false },
-                        // 💡 [개선] 데이터 범위에 맞춰 상하 10%만큼 비율 여백을 자동으로 주어 곡선의 굴곡을 위아래로 넓혀줍니다.
-                        grace: '10%', 
                         ticks: {
                             font:{size:9,weight:'600'}, color:'#8FA892', padding:2,
-                            // 💡 [개선] 좁은 범위에서도 눈금선이 촘촘하게 잡히도록 제한을 6~7개로 살짝 넓혀줍니다.
-                            maxTicksLimit: 7, 
-                            callback: v => {
-                                // 소수점 첫째 자리가 0이 아니면 표현해 주어 미세한 수익률 변화도 눈금으로 인지하게 합니다.
-                                return (v >= 0 ? '+' : '') + (Number.isInteger(v) ? v.toFixed(0) : v.toFixed(1)) + '%';
-                            }
+                            maxTicksLimit: 6,
+                            callback: v => (v >= 0 ? '+' : '') + v.toFixed(0) + '%'
                         }
                     }
                 }
