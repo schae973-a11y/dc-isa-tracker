@@ -690,10 +690,16 @@
                             drawTicks: false
                         },
                         border: { display: false },
+                        // 💡 [개선] 데이터 범위에 맞춰 상하 10%만큼 비율 여백을 자동으로 주어 곡선의 굴곡을 위아래로 넓혀줍니다.
+                        grace: '10%', 
                         ticks: {
                             font:{size:9,weight:'600'}, color:'#8FA892', padding:2,
-                            maxTicksLimit: 5,
-                            callback: v => (v >= 0 ? '+' : '') + v.toFixed(0) + '%'
+                            // 💡 [개선] 좁은 범위에서도 눈금선이 촘촘하게 잡히도록 제한을 6~7개로 살짝 넓혀줍니다.
+                            maxTicksLimit: 7, 
+                            callback: v => {
+                                // 소수점 첫째 자리가 0이 아니면 표현해 주어 미세한 수익률 변화도 눈금으로 인지하게 합니다.
+                                return (v >= 0 ? '+' : '') + (Number.isInteger(v) ? v.toFixed(0) : v.toFixed(1)) + '%';
+                            }
                         }
                     }
                 }
