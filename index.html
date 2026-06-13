@@ -478,9 +478,10 @@
         document.getElementById('dashboard-title').innerText = t === 'dc' ? 'DC 연금' : 'ISA 계좌';
         resetSortUI();
         if (allRawData[t]) {
-            renderSkeletonUI();
-            setTimeout(() => { if (currentTab === t) renderData(allRawData[t]); }, 120);
+            // 캐시 있으면 스켈레톤 없이 즉시 렌더
+            renderData(allRawData[t]);
         } else {
+            // 캐시 없을 때만 스켈레톤 + 페치
             fetchCurrentTabData();
         }
     }
