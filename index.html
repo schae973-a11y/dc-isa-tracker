@@ -205,11 +205,19 @@
         .legend-item {
             display: flex; align-items: center; gap: 2px;
             font-size: 9px; font-weight: 700;
+            cursor: pointer;
+            padding: 3px 4px; border-radius: 4px;
+            transition: opacity 0.15s;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
         }
+        .legend-item:active { opacity: 0.6; }
+        .legend-item.dimmed { opacity: 0.28; }
         .legend-line {
             width: 10px; height: 2px; border-radius: 1px; flex-shrink: 0;
         }
-        .chart-container { position: relative; width: 100%; height: 115px; }
+        /* 차트 높이 — 약간 늘려서 여백 확보 */
+        .chart-container { position: relative; width: 100%; height: 130px; }
 
         /* ── 종목 리스트 ── */
         .list-wrapper {
@@ -598,10 +606,15 @@
         if (data.chart && data.chart.myAsset && data.chart.myAsset.length > 0) renderTrendChart(data.chart);
     }
 
-        /* ── 차트 구성 ── */
+    /* ── 차트 구성 ── */
+    // 활성 데이터셋 키 상태 (기본: DC, ISA 켜짐 / 지수 3개 켜짐)
+    const CHART_KEYS   = ['DC','ISA','S&P500','NASDAQ','KOSPI'];
+    const hiddenKeys   = new Set();  // 꺼진 항목
+
     function renderTrendChart(chartData) {
         const ctx = document.getElementById('trendChart').getContext('2d');
 
+        // 전체 날짜 레이블 수집
         const allDatesSet = new Set();
         ['dc','isa','sp500','nasdaq','kospi'].forEach(k => {
             if (chartData[k]) chartData[k].forEach(d => allDatesSet.add(d.date));
@@ -634,136 +647,149 @@
             });
         }
 
-        const dcMap     = createMap(chartData.dc,     'total');
-        const isaMap    = createMap(chartData.isa,    'total');
-        const spMap     = createMap(chartData.sp500,  'value');
-        const nasdaqMap = createMap(chartData.nasdaq, 'value');
-        const kospiMap  = createMap(chartData.kospi,  'value');
+        const dcMap     = createMap(chartData.dc,    'total');
+        const isaMap    = createMap(chartData.isa,   'total');
+        const spMap     = createMap(chartData.sp500, 'value');
+        const nasdaqMap = createMap(chartData.nasdaq,'value');
+        const kospiMap  = createMap(chartData.kospi, 'value');
 
         const COLORS = {
-            dc:     '#2E7D32',
-            isa:    '#1565C0',
-            sp500:  '#90A4AE',
-            nasdaq: '#BCAAA4',
-            kospi:  '#F57F17'
+            'DC':     '#2E7D32',
+            'ISA':    '#1565C0',
+            'S&P500': '#90A4AE',
+            'NASDAQ': '#BCAAA4',
+            'KOSPI':  '#F57F17'
         };
 
-        let gradientFill = ctx.createLinearGradient(0, 0, 0, 110);
-        gradientFill.addColorStop(0, 'rgba(46,125,50,0.28)');
-        gradientFill.addColorStop(1, 'rgba(46,125,50,0.00)');
+        const dataMap = {
+            'DC':     toRates(dcMap),
+            'ISA':    toRates(isaMap),
+            'S&P500': toIndexRates(spMap),
+            'NASDAQ': toIndexRates(nasdaqMap),
+            'KOSPI':  toIndexRates(kospiMap),
+        };
+        const isDash = { 'DC': false, 'ISA': false, 'S&P500': true, 'NASDAQ': true, 'KOSPI': true };
+        const lineW  = { 'DC': 2.2,   'ISA': 2.2,   'S&P500': 1.1,  'NASDAQ': 1.1,  'KOSPI': 1.1 };
 
-        window.chartDatasets = [
-            chartData.dc && chartData.dc.length ? { label:'DC', data:toRates(dcMap), borderColor:COLORS.dc, borderWidth:3.2, fill:true, backgroundColor:gradientFill, pointRadius:0, tension:0.15, spanGaps:true, hidden: false } : null,
-            chartData.isa && chartData.isa.length ? { label:'ISA', data:toRates(isaMap), borderColor:COLORS.isa, borderWidth:2.9, fill:false, pointRadius:0, tension:0.15, spanGaps:true, hidden: false } : null,
-            chartData.sp500 && chartData.sp500.length ? { label:'S&P500', data:toIndexRates(spMap), borderColor:COLORS.sp500, borderWidth:1, borderDash:[3,3], fill:false, pointRadius:0, tension:0.2, spanGaps:true, hidden: true } : null,
-            chartData.nasdaq && chartData.nasdaq.length ? { label:'NASDAQ', data:toIndexRates(nasdaqMap), borderColor:COLORS.nasdaq, borderWidth:1, borderDash:[3,3], fill:false, pointRadius:0, tension:0.2, spanGaps:true, hidden: true } : null,
-            chartData.kospi && chartData.kospi.length ? { label:'KOSPI', data:toIndexRates(kospiMap), borderColor:COLORS.kospi, borderWidth:1.3, borderDash:[2,2], fill:false, pointRadius:0, tension:0.2, spanGaps:true, hidden: true } : null,
-        ].filter(Boolean);
+        const datasets = CHART_KEYS
+            .filter(k => dataMap[k] && dataMap[k].some(v => v !== null))
+            .map(k => ({
+                label:           k,
+                data:            dataMap[k],
+                borderColor:     COLORS[k],
+                borderWidth:     lineW[k],
+                borderDash:      isDash[k] ? [3, 3] : undefined,
+                fill:            false,
+                pointRadius:     0,
+                tension:         0.2,
+                spanGaps:        true,
+                hidden:          hiddenKeys.has(k)
+            }));
+
+        // ── Y축 범위 동적 계산 ──
+        function calcYRange() {
+            let allVals = [];
+            datasets.forEach(ds => {
+                if (!ds.hidden) {
+                    ds.data.forEach(v => { if (v !== null) allVals.push(v); });
+                }
+            });
+            if (!allVals.length) return { min: -5, max: 5 };
+            const mn = Math.min(...allVals);
+            const mx = Math.max(...allVals);
+            const pad = Math.max((mx - mn) * 0.12, 2);  // 12% 여유 + 최소 2%
+            return {
+                min: Math.floor((mn - pad) / 5) * 5,
+                max: Math.ceil((mx  + pad) / 5) * 5
+            };
+        }
+
+        // ── 범례 렌더 + 토글 이벤트 ──
+        const legendEl = document.getElementById('chart-legend');
+        if (legendEl) {
+            legendEl.innerHTML = CHART_KEYS.map(k => {
+                const color = COLORS[k];
+                const dash  = isDash[k];
+                const dimmed = hiddenKeys.has(k) ? ' dimmed' : '';
+                const lineStyle = dash
+                    ? `background:repeating-linear-gradient(to right,${color} 0,${color} 3px,transparent 3px,transparent 6px);`
+                    : `background:${color};`;
+                return `<span class="legend-item${dimmed}" data-key="${k}" style="color:${color}">` +
+                       `<span class="legend-line" style="${lineStyle}"></span>${k}</span>`;
+            }).join('');
+
+            // 토글 클릭 이벤트
+            legendEl.querySelectorAll('.legend-item').forEach(el => {
+                el.addEventListener('click', () => {
+                    const key = el.getAttribute('data-key');
+                    if (hiddenKeys.has(key)) hiddenKeys.delete(key);
+                    else hiddenKeys.add(key);
+
+                    // dataset hidden 상태 업데이트
+                    const ds = trendChart.data.datasets.find(d => d.label === key);
+                    if (ds) {
+                        ds.hidden = hiddenKeys.has(key);
+                        el.classList.toggle('dimmed', hiddenKeys.has(key));
+                    }
+
+                    // Y축 범위 재계산 → 차트 업데이트
+                    const range = calcYRange();
+                    trendChart.options.scales.y.min = range.min;
+                    trendChart.options.scales.y.max = range.max;
+                    trendChart.update('active');
+                });
+            });
+        }
 
         if (trendChart) { trendChart.destroy(); trendChart = null; }
         Chart.defaults.font.family = '-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard",sans-serif';
 
+        const initRange = calcYRange();
+
         trendChart = new Chart(ctx, {
             type: 'line',
-            data: { labels, datasets: window.chartDatasets },
+            data: { labels, datasets },
             options: {
-                responsive: true, 
-                maintainAspectRatio: false, 
+                responsive: true,
+                maintainAspectRatio: false,
                 events: [],
-                plugins: { 
-                    legend: { display: false }, 
-                    tooltip: { enabled: false } 
-                },
+                plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                layout: { padding: { top: 2, bottom: 0, left: 0, right: 0 } },
                 scales: {
                     x: {
-                        grid: { display: false },
-                        ticks: { 
-                            font:{size:9, weight:'600'}, 
-                            color:'#8FA892', 
-                            maxTicksLimit: 6,
+                        grid:  { display: false },
+                        border:{ display: false },
+                        ticks: {
+                            font: { size: 9, weight: '600' },
+                            color: '#8FA892',
+                            maxTicksLimit: 5,
                             maxRotation: 0,
-                            padding: 6
+                            padding: 2   // ← X축 레이블 위쪽 여백 최소화
                         }
                     },
                     y: {
+                        min:  initRange.min,
+                        max:  initRange.max,
                         grid: {
-                            color: ctx2 => ctx2.tick.value === 0 ? 'rgba(0,0,0,0.14)' : 'rgba(46,125,50,0.06)',
-                            lineWidth: ctx2 => ctx2.tick.value === 0 ? 1.4 : 1,
+                            color:     ctx2 => ctx2.tick.value === 0 ? 'rgba(0,0,0,0.12)' : 'rgba(46,125,50,0.04)',
+                            lineWidth: ctx2 => ctx2.tick.value === 0 ? 1.2 : 1,
                             drawTicks: false
                         },
                         border: { display: false },
                         ticks: {
-                            font:{size:9, weight:'600'}, 
-                            color:'#8FA892', 
-                            padding: 8,
-                            maxTicksLimit: 7,
+                            font:         { size: 9, weight: '600' },
+                            color:        '#8FA892',
+                            padding:      2,    // ← Y축 레이블 오른쪽 여백 최소화
+                            maxTicksLimit: 5,
                             callback: v => (v >= 0 ? '+' : '') + v.toFixed(0) + '%'
                         }
                     }
                 }
             }
         });
-
-        renderChartScale();
-        updateLegendUI();
     }
 
-    // 현재 보이는 모든 선을 기준으로 Y축을 깔끔하게 조정
-    function renderChartScale() {
-        if (!trendChart || !window.chartDatasets) return;
-
-        let visibleValues = [];
-
-        window.chartDatasets.forEach((ds, i) => {
-            if (ds.hidden) return;
-            const data = trendChart.data.datasets[i]?.data || [];
-            visibleValues.push(...data.filter(v => v !== null && isFinite(v)));
-        });
-
-        if (visibleValues.length === 0) return;
-
-        const minVal = Math.min(...visibleValues);
-        const maxVal = Math.max(...visibleValues);
-        const range = maxVal - minVal || 10;
-
-        // 더 여유로운 패딩 + KOSPI처럼 큰 움직임에도 잘리지 않게
-        const padding = Math.max(range * 0.22, 8);
-
-        trendChart.options.scales.y.min = Math.floor(minVal - padding);
-        trendChart.options.scales.y.max = Math.ceil(maxVal + padding);
-        
-        trendChart.update('none'); // scale만 빠르게 업데이트
-    }
-
-    // 차트 범례 클릭 토글
-    function updateLegendUI() {
-        const legendEl = document.getElementById('chart-legend');
-        if (!legendEl || !window.chartDatasets) return;
-
-        legendEl.innerHTML = window.chartDatasets.map((ds, index) => {
-            const isHidden = ds.hidden;
-            return `<span class="legend-item" style="color:${ds.borderColor}; opacity:${isHidden ? '0.45' : '1'}; cursor:pointer; user-select:none;" 
-                    onclick="toggleDataset(${index})">
-                <span class="legend-line" style="background:${ds.borderColor};${ds.borderDash?'background:repeating-linear-gradient(to right,'+ds.borderColor+' 0,'+ds.borderColor+' 3px,transparent 3px,transparent 6px);':''}"></span>
-                ${ds.label}
-            </span>`;
-        }).join('');
-    }
-
-    window.toggleDataset = function(index) {
-        if (!trendChart || !window.chartDatasets) return;
-
-        const ds = window.chartDatasets[index];
-        ds.hidden = !ds.hidden;
-        trendChart.data.datasets[index].hidden = ds.hidden;
-
-        trendChart.update();
-        renderChartScale();     // y축 재조정
-        updateLegendUI();
-    };
-
-    
-    /* ── 정렬 ── */
+        /* ── 정렬 ── */
     function resetSortUI() {
         currentSortType = 'default'; isAscending = false;
         document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
