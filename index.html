@@ -598,7 +598,7 @@
         if (data.chart && data.chart.myAsset && data.chart.myAsset.length > 0) renderTrendChart(data.chart);
     }
 
-    /* ── 차트 구성 ── */
+        /* ── 차트 구성 ── */
     function renderTrendChart(chartData) {
         const ctx = document.getElementById('trendChart').getContext('2d');
 
@@ -649,21 +649,21 @@
         };
 
         let gradientFill = ctx.createLinearGradient(0, 0, 0, 110);
-        gradientFill.addColorStop(0, 'rgba(46,125,50,0.22)');
+        gradientFill.addColorStop(0, 'rgba(46,125,50,0.25)');
         gradientFill.addColorStop(1, 'rgba(46,125,50,0.00)');
 
         const datasets = [
-            chartData.dc && chartData.dc.length ? { label:'DC', data:toRates(dcMap), borderColor:COLORS.dc, borderWidth:2.8, fill:true, backgroundColor:gradientFill, pointRadius:0, tension:0.2, spanGaps:true } : null,
-            chartData.isa && chartData.isa.length ? { label:'ISA', data:toRates(isaMap), borderColor:COLORS.isa, borderWidth:2.5, fill:false, pointRadius:0, tension:0.2, spanGaps:true } : null,
+            chartData.dc && chartData.dc.length ? { label:'DC', data:toRates(dcMap), borderColor:COLORS.dc, borderWidth:3, fill:true, backgroundColor:gradientFill, pointRadius:0, tension:0.15, spanGaps:true } : null,
+            chartData.isa && chartData.isa.length ? { label:'ISA', data:toRates(isaMap), borderColor:COLORS.isa, borderWidth:2.8, fill:false, pointRadius:0, tension:0.15, spanGaps:true } : null,
             chartData.sp500 && chartData.sp500.length ? { label:'S&P500', data:toIndexRates(spMap), borderColor:COLORS.sp500, borderWidth:1, borderDash:[3,3], fill:false, pointRadius:0, tension:0.2, spanGaps:true } : null,
             chartData.nasdaq && chartData.nasdaq.length ? { label:'NASDAQ', data:toIndexRates(nasdaqMap), borderColor:COLORS.nasdaq, borderWidth:1, borderDash:[3,3], fill:false, pointRadius:0, tension:0.2, spanGaps:true } : null,
-            chartData.kospi && chartData.kospi.length ? { label:'KOSPI', data:toIndexRates(kospiMap), borderColor:COLORS.kospi, borderWidth:1.1, borderDash:[4,2], fill:false, pointRadius:0, tension:0.2, spanGaps:true } : null,
+            chartData.kospi && chartData.kospi.length ? { label:'KOSPI', data:toIndexRates(kospiMap), borderColor:COLORS.kospi, borderWidth:1.2, borderDash:[2,2], fill:false, pointRadius:0, tension:0.2, spanGaps:true, opacity: 0.75 } : null,
         ].filter(Boolean);
 
         const legendEl = document.getElementById('chart-legend');
         if (legendEl) {
             legendEl.innerHTML = datasets.map(ds =>
-                `<span class="legend-item" style="color:${ds.borderColor}">` +
+                `<span class="legend-item" style="color:${ds.borderColor}; opacity:${ds.label==='KOSPI' ? '0.75' : '1'}">` +
                 `<span class="legend-line" style="background:${ds.borderColor};${ds.borderDash?'background:repeating-linear-gradient(to right,'+ds.borderColor+' 0,'+ds.borderColor+' 3px,transparent 3px,transparent 6px);':''}"></span>` +
                 `${ds.label}</span>`
             ).join('');
@@ -672,44 +672,28 @@
         if (trendChart) { trendChart.destroy(); trendChart = null; }
         Chart.defaults.font.family = '-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard",sans-serif';
 
-        // ==================== y축 스마트 범위 계산 ====================
-        let allValues = [];
+        // ==================== DC/ISA 중심 y축 계산 ====================
         let primaryValues = [];
 
         if (dcMap) {
             const rates = toRates(dcMap).filter(v => v !== null);
             primaryValues.push(...rates);
-            allValues.push(...rates);
         }
         if (isaMap) {
             const rates = toRates(isaMap).filter(v => v !== null);
             primaryValues.push(...rates);
-            allValues.push(...rates);
         }
-
-        ['sp500', 'nasdaq', 'kospi'].forEach(key => {
-            const map = key === 'sp500' ? spMap : key === 'nasdaq' ? nasdaqMap : kospiMap;
-            if (map) {
-                const rates = toIndexRates(map).filter(v => v !== null);
-                allValues.push(...rates);
-            }
-        });
 
         if (primaryValues.length === 0) return;
 
         const primaryMin = Math.min(...primaryValues);
         const primaryMax = Math.max(...primaryValues);
-        const allMin = allValues.length ? Math.min(...allValues) : primaryMin;
-        const allMax = allValues.length ? Math.max(...allValues) : primaryMax;
+        const range = primaryMax - primaryMin;
 
-        let yMin = Math.min(primaryMin, allMin * 0.92);
-        let yMax = Math.max(primaryMax, allMax * 1.08);
+        const padding = Math.max(range * 0.25, 6);   // 여유를 더 크게 줌
 
-        const primaryRange = primaryMax - primaryMin;
-        const padding = Math.max(primaryRange * 0.18, 5);
-
-        yMin = Math.floor(yMin - padding);
-        yMax = Math.ceil(yMax + padding);
+        let yMin = Math.floor(primaryMin - padding);
+        let yMax = Math.ceil(primaryMax + padding);
 
         // ==================== Chart 생성 ====================
         trendChart = new Chart(ctx, {
@@ -727,8 +711,8 @@
                         min: yMin,
                         max: yMax,
                         grid: {
-                            color: ctx2 => ctx2.tick.value === 0 ? 'rgba(0,0,0,0.12)' : 'rgba(46,125,50,0.04)',
-                            lineWidth: ctx2 => ctx2.tick.value === 0 ? 1.2 : 1,
+                            color: ctx2 => ctx2.tick.value === 0 ? 'rgba(0,0,0,0.13)' : 'rgba(46,125,50,0.05)',
+                            lineWidth: ctx2 => ctx2.tick.value === 0 ? 1.3 : 1,
                             drawTicks: false
                         },
                         border: { display: false },
@@ -742,7 +726,6 @@
             }
         });
     }
-
     /* ── 정렬 ── */
     function resetSortUI() {
         currentSortType = 'default'; isAscending = false;
