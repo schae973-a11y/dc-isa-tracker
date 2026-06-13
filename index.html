@@ -609,7 +609,13 @@
     /* ── 차트 구성 ── */
     // 활성 데이터셋 키 상태 (기본: DC, ISA 켜짐 / 지수 3개 켜짐)
     const CHART_KEYS   = ['DC','ISA','S&P500','NASDAQ','KOSPI'];
-    const hiddenKeys   = new Set(['S&P500','NASDAQ','KOSPI']);  // 지수는 기본 OFF
+    // 탭별 hiddenKeys — DC탭: DC만, ISA탭: ISA만 기본 ON
+    const hiddenKeysByTab = {
+        dc:  new Set(['ISA','S&P500','NASDAQ','KOSPI']),
+        isa: new Set(['DC', 'S&P500','NASDAQ','KOSPI'])
+    };
+    // 현재 탭의 hiddenKeys를 반환하는 헬퍼
+    function getHiddenKeys() { return hiddenKeysByTab[currentTab]; }
 
     function renderTrendChart(chartData) {
         const ctx = document.getElementById('trendChart').getContext('2d');
@@ -654,11 +660,11 @@
         const kospiMap  = createMap(chartData.kospi, 'value');
 
         const COLORS = {
-            'DC':     '#2E7D32',
-            'ISA':    '#1565C0',
-            'S&P500': '#90A4AE',
-            'NASDAQ': '#BCAAA4',
-            'KOSPI':  '#F57F17'
+            'DC':     '#1565C0',   // 미드나잇 블루 — 녹색 배경에서 선명
+            'ISA':    '#C62828',   // 딥 레드 — DC와 강한 대비
+            'S&P500': '#546E57',   // 올리브 그린 — 테마 조화
+            'NASDAQ': '#78909C',   // 스틸 블루그레이 — 중성 보조
+            'KOSPI':  '#8D6E63'    // 웜 브라운 — 지수 위계 유지
         };
 
         const dataMap = {
@@ -686,14 +692,15 @@
                 pointStyle:         false,
                 tension:            0.2,
                 spanGaps:           true,
-                hidden:             hiddenKeys.has(k)
+                hidden:             getHiddenKeys().has(k)
             }));
 
         // ── Y축 범위 동적 계산 ──
         function calcYRange() {
             let allVals = [];
             datasets.forEach(ds => {
-                if (!ds.hidden) {
+                // hidden 속성과 getHiddenKeys() 둘 다 체크
+                if (!ds.hidden && !getHiddenKeys().has(ds.label)) {
                     ds.data.forEach(v => { if (v !== null) allVals.push(v); });
                 }
             });
@@ -713,7 +720,7 @@
             legendEl.innerHTML = CHART_KEYS.map(k => {
                 const color = COLORS[k];
                 const dash  = isDash[k];
-                const dimmed = hiddenKeys.has(k) ? ' dimmed' : '';
+                const dimmed = getHiddenKeys().has(k) ? ' dimmed' : '';
                 const lineStyle = dash
                     ? `background:repeating-linear-gradient(to right,${color} 0,${color} 3px,transparent 3px,transparent 6px);`
                     : `background:${color};`;
@@ -725,14 +732,15 @@
             legendEl.querySelectorAll('.legend-item').forEach(el => {
                 el.addEventListener('click', () => {
                     const key = el.getAttribute('data-key');
-                    if (hiddenKeys.has(key)) hiddenKeys.delete(key);
-                    else hiddenKeys.add(key);
+                    const hk = getHiddenKeys();
+                    if (hk.has(key)) hk.delete(key);
+                    else hk.add(key);
 
                     // dataset hidden 상태 업데이트
                     const ds = trendChart.data.datasets.find(d => d.label === key);
                     if (ds) {
-                        ds.hidden = hiddenKeys.has(key);
-                        el.classList.toggle('dimmed', hiddenKeys.has(key));
+                        ds.hidden = getHiddenKeys().has(key);
+                        el.classList.toggle('dimmed', getHiddenKeys().has(key));
                     }
 
                     // Y축 범위 재계산 → 차트 업데이트
