@@ -609,7 +609,7 @@
     /* ── 차트 구성 ── */
     // 활성 데이터셋 키 상태 (기본: DC, ISA 켜짐 / 지수 3개 켜짐)
     const CHART_KEYS   = ['DC','ISA','S&P500','NASDAQ','KOSPI'];
-    const hiddenKeys   = new Set();  // 꺼진 항목
+    const hiddenKeys   = new Set(['S&P500','NASDAQ','KOSPI']);  // 지수는 기본 OFF
 
     function renderTrendChart(chartData) {
         const ctx = document.getElementById('trendChart').getContext('2d');
@@ -674,16 +674,19 @@
         const datasets = CHART_KEYS
             .filter(k => dataMap[k] && dataMap[k].some(v => v !== null))
             .map(k => ({
-                label:           k,
-                data:            dataMap[k],
-                borderColor:     COLORS[k],
-                borderWidth:     lineW[k],
-                borderDash:      isDash[k] ? [3, 3] : undefined,
-                fill:            false,
-                pointRadius:     0,
-                tension:         0.2,
-                spanGaps:        true,
-                hidden:          hiddenKeys.has(k)
+                label:              k,
+                data:               dataMap[k],
+                borderColor:        COLORS[k],
+                borderWidth:        lineW[k],
+                borderDash:         isDash[k] ? [3, 3] : undefined,
+                fill:               false,
+                pointRadius:        0,
+                pointHoverRadius:   0,
+                pointHitRadius:     0,
+                pointStyle:         false,
+                tension:            0.2,
+                spanGaps:           true,
+                hidden:             hiddenKeys.has(k)
             }));
 
         // ── Y축 범위 동적 계산 ──
@@ -743,6 +746,9 @@
 
         if (trendChart) { trendChart.destroy(); trendChart = null; }
         Chart.defaults.font.family = '-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard",sans-serif';
+        Chart.defaults.elements.point.radius      = 0;
+        Chart.defaults.elements.point.hoverRadius = 0;
+        Chart.defaults.elements.point.hitRadius   = 0;
 
         const initRange = calcYRange();
 
@@ -752,8 +758,11 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                events: [],
-                plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                interaction: { mode: null },
+                plugins: {
+                    legend:  { display: false },
+                    tooltip: { enabled: false }
+                },
                 layout: { padding: { top: 2, bottom: 0, left: 0, right: 0 } },
                 scales: {
                     x: {
