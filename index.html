@@ -814,24 +814,6 @@
         if (allRawData[currentTab]) renderList(allRawData[currentTab].items);
     }
 
-    /* ── 안전한 퍼센트 문자열 추출/파싱 함수 (추가) ── */
-    function parseSafePercent(val) {
-        if (val === undefined || val === null) return "0";
-        // 만약 "15%" 처럼 문자열로 넘어오면 기호 제거 후 숫자만 추출
-        if (typeof val === 'string') {
-            let clean = val.replace(/[^0-9.-]/g, '');
-            let parsed = parseFloat(clean);
-            return isNaN(parsed) ? "0" : parsed.toString();
-        }
-        // 숫자인데 0.15 형태로 들어올 때를 대비한 방어 코드 (1 미만의 소수점이면 100을 곱함, 단 원래 목표가 0%면 0)
-        let num = parseFloat(val);
-        if (isNaN(num)) return "0";
-        if (num > 0 && num < 1) {
-            return (num * 100).toFixed(0);
-        }
-        return num.toString();
-    }
-
     /* ── 보유 종목 카드 렌더링 ── */
     function renderList(items) {
         const list = document.getElementById('ticker-list');
@@ -856,8 +838,8 @@
             const curSign = cur >= 0 ? '+' : '';
             const cumSign = cum >= 0 ? '+' : '';
 
-            const targetVal  = parseSafePercent(item.targetWeight);
-            const currentVal = parseSafePercent(item.currentWeight);
+            const targetVal  = parseFloat(item.targetWeight || 0).toFixed(1);
+            const currentVal = parseFloat(item.currentWeight || 0).toFixed(1);
 
             const card = document.createElement('div');
             card.className = 'ticker-card' + (isW ? ' warn' : '');
