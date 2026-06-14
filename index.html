@@ -98,7 +98,6 @@
         let chartInstance = null;
         let globalData = null;
 
-        // 색상 맵 정의
         const colorMap = {
             'TIGER 미국S&P500': '#2E7D32',
             'ACE 미국빅테크TOP7': '#1565C0',
@@ -110,7 +109,7 @@
             '한화 200': '#BF360C'
         };
 
-        const defaultColors = ['#00838F', '#00796B', '#F57C00', '#D32F2F', '#C2185B', '#7B1FA2 text-slate-600'];
+        const defaultColors = ['#00838F', '#00796B', '#F57C00', '#D32F2F', '#C2185B', '#7B1FA2'];
 
         function getChartColor(name, index) {
             for (let key in colorMap) {
@@ -160,7 +159,6 @@
         function renderDashboard(data) {
             globalData = data;
             
-            // 상단 마스터 기본 정보 바인딩
             document.getElementById('base-date').innerText = data.baseDate + ' 기준';
             document.getElementById('total-asset').innerText = formatWon(data.summary.totalAsset);
             document.getElementById('total-purchase').innerText = formatWon(data.summary.totalPurchase);
@@ -184,10 +182,8 @@
 
             document.getElementById('ticker-count').innerText = data.items.length + '개 종목';
 
-            // 리밸런싱 필요 종목 정렬 로직 (필요 종목 상단 배치)
             const sortedItems = [...data.items].sort((a, b) => (b.needsRebalancing ? 1 : 0) - (a.needsRebalancing ? 1 : 0));
 
-            // 종목 카드 출력 렌더링
             const container = document.getElementById('ticker-container');
             container.innerHTML = '';
 
@@ -197,12 +193,12 @@
                 
                 const returnText = (item.returnRate >= 0 ? '+' : '') + item.returnRate.toFixed(2) + '%';
                 
-                // 1) 요구사항반영: 수익률 크기에 따른 bold 제거, 단순 색상 클래스 분기 적용
+                // 1) 수익률 굵기(bold) 제거: 단순 색상 클래스만 부여 (font-bold 제거)
                 let returnColorClass = "text-slate-600";
                 if(item.returnRate > 0) returnColorClass = "text-rose-500";
                 else if(item.returnRate < 0) returnColorClass = "text-blue-500";
 
-                // 2) 요구사항반영: 리밸런싱 타겟팅 오버레이 텍스트 포맷 변경
+                // 2) 리밸런싱 안내 텍스트 변경: "리밸런싱 [목표 X% / 현재 Y%]"
                 const rebalanceBadgeHtml = item.needsRebalancing 
                     ? `<span class="text-[11px] font-bold text-orange-600 bg-orange-100 px-2 py-0.5 rounded-md flex items-center gap-1">
                         <i class="fa-solid fa-triangle-exclamation"></i> 리밸런싱 [목표 ${item.targetPct}% / 현재 ${item.currentPct}%]
@@ -225,7 +221,6 @@
                 container.appendChild(card);
             });
 
-            // 차트 렌더링 영역 및 도넛 구조 빌드
             renderChart(data.items);
         }
 
@@ -261,7 +256,6 @@
                 }
             });
 
-            // 커스텀 레전드 생성
             const legendContainer = document.getElementById('chart-legend');
             legendContainer.innerHTML = '';
             items.forEach((item, idx) => {
