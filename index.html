@@ -856,9 +856,8 @@
             const curSign = cur >= 0 ? '+' : '';
             const cumSign = cum >= 0 ? '+' : '';
 
-            // 데이터 타입 불일치를 원천 차단하는 완전 방어형 파싱 적용
-            const targetVal  = parseSafePercent(item.targetRatio);
-            const currentVal = parseSafePercent(item.currentRatio);
+            const targetVal  = parseSafePercent(item.targetWeight);
+            const currentVal = parseSafePercent(item.currentWeight);
 
             const card = document.createElement('div');
             card.className = 'ticker-card' + (isW ? ' warn' : '');
