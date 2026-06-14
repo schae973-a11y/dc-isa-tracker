@@ -860,13 +860,6 @@
             const curSign = cur >= 0 ? '+' : '';
             const cumSign = cum >= 0 ? '+' : '';
 
-            // 리밸런싱 목표/현재 계산
-            const tgt  = parseFloat(item.targetWeight  || 0) * 100;
-            const curr = parseFloat(item.currentWeight || 0) * 100;
-            const diff = curr - tgt;
-            const diffColor = diff > 0 ? '#C62828' : '#1565C0';
-            const diffBg    = diff > 0 ? 'rgba(198,40,40,0.08)' : 'rgba(21,101,192,0.08)';
-
             const card = document.createElement('div');
             card.className = 'ticker-card' + (isW ? ' warn' : '');
             card.innerHTML = `
@@ -876,13 +869,9 @@
                         <span style="font-size:9px; font-weight:600; color:#6B7280; background:#E5E7EB; padding:0.5px 4px; border-radius:3px; flex-shrink:0; font-family:monospace;">${item.ticker || '—'}</span>
                         <span style="font-size:12.5px; font-weight:600; color:var(--c-text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.name}</span>
                     </div>
-                    <div style="display:flex; align-items:center; gap:0; flex-wrap:nowrap; overflow:hidden;">
-                        <span style="font-size:11px; color:var(--c-text-secondary); font-weight:500; font-variant-numeric:tabular-nums; flex-shrink:0;">₩${Math.round(item.evalAmt).toLocaleString()}</span>
-                        ${isW ? `
-                        <span style="display:inline-flex; align-items:center; gap:3px; margin-left:6px; flex-shrink:0;">
-                            <span style="font-size:9px; color:var(--c-text-label); font-variant-numeric:tabular-nums; white-space:nowrap;">${tgt.toFixed(1)}% › ${curr.toFixed(1)}%</span>
-                            <span style="font-size:9px; font-weight:700; color:${diffColor}; background:${diffBg}; padding:0 4px; border-radius:3px; white-space:nowrap; font-variant-numeric:tabular-nums;">${diff > 0 ? '+' : ''}${diff.toFixed(1)}%p</span>
-                        </span>` : ''}
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <span style="font-size:11px; color:var(--c-text-secondary); font-weight:500; font-variant-numeric:tabular-nums;">₩${Math.round(item.evalAmt).toLocaleString()}</span>
+                        ${isW ? '<span style="font-size:9px; font-weight:700; color:#D97706;"><i class="fa-solid fa-triangle-exclamation" style="font-size:8px; margin-right:1px;"></i>리밸런싱</span>' : ''}
                     </div>
                 </div>
                 <div style="text-align:right; flex-shrink:0; white-space:nowrap; font-size:12.5px; font-variant-numeric:tabular-nums;">
