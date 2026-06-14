@@ -179,8 +179,8 @@
         .neu-amt, .neu-rate { color: var(--c-neutral); }
 
         /* 수익률 단일 색상화 클래스 정의 */
-        .rate-up  { color: var(--c-up); }
-        .rate-dn  { color: var(--c-down); }
+        .rate-up  { color: var(--c-up); font-weight: 700; }
+        .rate-dn  { color: var(--c-down); font-weight: 700; }
         .rate-neu { color: var(--c-neutral); font-weight: 500; }
 
         /* ── 차트 카드 ── */
@@ -860,31 +860,15 @@
             const curSign = cur >= 0 ? '+' : '';
             const cumSign = cum >= 0 ? '+' : '';
 
-            const card = document.createElement('div');
-            card.className = 'ticker-card' + (isW ? ' warn' : '');
-            // 리밸런싱 상세 정보 (한 줄 인라인)
+            // 리밸런싱 목표/현재 계산
             const tgt  = parseFloat(item.targetWeight  || 0) * 100;
             const curr = parseFloat(item.currentWeight || 0) * 100;
             const diff = curr - tgt;
             const diffColor = diff > 0 ? '#C62828' : '#1565C0';
-            const rebalLine = isW ? `
-                <span style="
-                    display:inline-flex; align-items:center; gap:3px;
-                    margin-left:6px;
-                    font-size:9px; font-variant-numeric:tabular-nums;
-                    color:var(--c-text-label);
-                    white-space:nowrap;
-                ">
-                    <span style="font-weight:600; color:var(--c-text-secondary);">${tgt.toFixed(1)}%</span>
-                    <span style="color:#C8D8CB;">›</span>
-                    <span style="font-weight:600; color:var(--c-text-secondary);">${curr.toFixed(1)}%</span>
-                    <span style="
-                        font-weight:700; color:${diffColor};
-                        background:${diff > 0 ? 'rgba(198,40,40,0.07)' : 'rgba(21,101,192,0.07)'};
-                        padding:0px 4px; border-radius:3px;
-                    ">${diff > 0 ? '+' : ''}${diff.toFixed(1)}%p</span>
-                </span>` : '';
+            const diffBg    = diff > 0 ? 'rgba(198,40,40,0.08)' : 'rgba(21,101,192,0.08)';
 
+            const card = document.createElement('div');
+            card.className = 'ticker-card' + (isW ? ' warn' : '');
             card.innerHTML = `
                 <div style="flex:1; min-width:0; padding-right:8px;">
                     <div style="display:flex; align-items:center; gap:4px; margin-bottom:2px; flex-wrap:nowrap;">
@@ -892,9 +876,13 @@
                         <span style="font-size:9px; font-weight:600; color:#6B7280; background:#E5E7EB; padding:0.5px 4px; border-radius:3px; flex-shrink:0; font-family:monospace;">${item.ticker || '—'}</span>
                         <span style="font-size:12.5px; font-weight:600; color:var(--c-text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.name}</span>
                     </div>
-                    <div style="display:flex; align-items:center; flex-wrap:nowrap; overflow:hidden;">
+                    <div style="display:flex; align-items:center; gap:0; flex-wrap:nowrap; overflow:hidden;">
                         <span style="font-size:11px; color:var(--c-text-secondary); font-weight:500; font-variant-numeric:tabular-nums; flex-shrink:0;">₩${Math.round(item.evalAmt).toLocaleString()}</span>
-                        ${rebalLine}
+                        ${isW ? `
+                        <span style="display:inline-flex; align-items:center; gap:3px; margin-left:6px; flex-shrink:0;">
+                            <span style="font-size:9px; color:var(--c-text-label); font-variant-numeric:tabular-nums; white-space:nowrap;">${tgt.toFixed(1)}% › ${curr.toFixed(1)}%</span>
+                            <span style="font-size:9px; font-weight:700; color:${diffColor}; background:${diffBg}; padding:0 4px; border-radius:3px; white-space:nowrap; font-variant-numeric:tabular-nums;">${diff > 0 ? '+' : ''}${diff.toFixed(1)}%p</span>
+                        </span>` : ''}
                     </div>
                 </div>
                 <div style="text-align:right; flex-shrink:0; white-space:nowrap; font-size:12.5px; font-variant-numeric:tabular-nums;">
