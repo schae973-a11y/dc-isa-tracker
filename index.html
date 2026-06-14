@@ -31,7 +31,7 @@
             --c-text-secondary: #546E57;
             --c-text-label:     #8FA892;
             --c-border:         #DDE8DF;
-            --c-divider:        #EBF2EC;
+            --c-divider:         #EBF2EC;
 
             --skeleton-base:      #E2EDE4;
             --skeleton-highlight: #F0F7F1;
@@ -814,6 +814,24 @@
         if (allRawData[currentTab]) renderList(allRawData[currentTab].items);
     }
 
+    /* ── 안전한 퍼센트 문자열 추출/파싱 함수 (추가) ── */
+    function parseSafePercent(val) {
+        if (val === undefined || val === null) return "0";
+        // 만약 "15%" 처럼 문자열로 넘어오면 기호 제거 후 숫자만 추출
+        if (typeof val === 'string') {
+            let clean = val.replace(/[^0-9.-]/g, '');
+            let parsed = parseFloat(clean);
+            return isNaN(parsed) ? "0" : parsed.toString();
+        }
+        // 숫자인데 0.15 형태로 들어올 때를 대비한 방어 코드 (1 미만의 소수점이면 100을 곱함, 단 원래 목표가 0%면 0)
+        let num = parseFloat(val);
+        if (isNaN(num)) return "0";
+        if (num > 0 && num < 1) {
+            return (num * 100).toFixed(0);
+        }
+        return num.toString();
+    }
+
     /* ── 보유 종목 카드 렌더링 ── */
     function renderList(items) {
         const list = document.getElementById('ticker-list');
@@ -833,15 +851,14 @@
             const cur  = parseFloat(item.currentRate    || 0);
             const cum  = parseFloat(item.cumulativeRate || 0);
             
-            // 1) 텍스트 굵기(Bold)가 제거된 상태를 안정적으로 유지
             const curCls = getRateClass(cur);
             const cumCls = getRateClass(cum);
             const curSign = cur >= 0 ? '+' : '';
             const cumSign = cum >= 0 ? '+' : '';
 
-            // 2) 백엔드 매핑 필드 수정: targetPct -> targetRatio / currentPct -> currentRatio로 수정하여 정상 표기
-            const targetVal  = item.targetRatio  !== undefined ? item.targetRatio  : '0';
-            const currentVal = item.currentRatio !== undefined ? item.currentRatio : '0';
+            // 데이터 타입 불일치를 원천 차단하는 완전 방어형 파싱 적용
+            const targetVal  = parseSafePercent(item.targetRatio);
+            const currentVal = parseSafePercent(item.currentRatio);
 
             const card = document.createElement('div');
             card.className = 'ticker-card' + (isW ? ' warn' : '');
