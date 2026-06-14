@@ -838,8 +838,11 @@
             const curSign = cur >= 0 ? '+' : '';
             const cumSign = cum >= 0 ? '+' : '';
 
-            const targetVal  = parseFloat(item.targetWeight || 0).toFixed(1);
-            const currentVal = parseFloat(item.currentWeight || 0).toFixed(1);
+            let targetVal  = parseFloat(item.targetWeight || 0) * 100;
+            let currentVal = parseFloat(item.currentWeight || 0) * 100;
+        
+            targetVal  = targetVal.toFixed(1);
+            currentVal = currentVal.toFixed(1);
 
             const card = document.createElement('div');
             card.className = 'ticker-card' + (isW ? ' warn' : '');
