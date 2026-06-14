@@ -179,8 +179,8 @@
         .neu-amt, .neu-rate { color: var(--c-neutral); }
 
         /* 수익률 단일 색상화 클래스 정의 */
-        .rate-up  { color: var(--c-up); font-weight: 700; }
-        .rate-dn  { color: var(--c-down); font-weight: 700; }
+        .rate-up  { color: var(--c-up); }
+        .rate-dn  { color: var(--c-down); }
         .rate-neu { color: var(--c-neutral); font-weight: 500; }
 
         /* ── 차트 카드 ── */
@@ -862,6 +862,29 @@
 
             const card = document.createElement('div');
             card.className = 'ticker-card' + (isW ? ' warn' : '');
+            // 리밸런싱 상세 정보 계산
+            const tgt  = parseFloat(item.targetWeight  || 0) * 100;  // 소수→%
+            const curr = parseFloat(item.currentWeight || 0) * 100;
+            const diff = curr - tgt;
+            const rebalInfo = isW ? `
+                <div style="margin-top:5px; padding:5px 8px; background:rgba(245,158,11,0.08); border-radius:7px; border:1px solid rgba(245,158,11,0.20);">
+                    <div style="display:flex; align-items:center; justify-content:space-between;">
+                        <span style="font-size:9px; font-weight:700; color:#D97706; display:flex; align-items:center; gap:3px;">
+                            <i class="fa-solid fa-triangle-exclamation" style="font-size:8px;"></i> 리밸런싱
+                        </span>
+                        <span style="font-size:9px; font-weight:700; color:${diff > 0 ? '#C62828' : '#1565C0'}; font-variant-numeric:tabular-nums;">
+                            ${diff > 0 ? '+' : ''}${diff.toFixed(1)}%p
+                        </span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:4px; margin-top:3px;">
+                        <span style="font-size:9px; color:#8FA892;">목표</span>
+                        <span style="font-size:9px; font-weight:700; color:var(--c-text-secondary); font-variant-numeric:tabular-nums;">${tgt.toFixed(1)}%</span>
+                        <span style="font-size:9px; color:#C8D8CB; margin:0 1px;">→</span>
+                        <span style="font-size:9px; color:#8FA892;">현재</span>
+                        <span style="font-size:9px; font-weight:700; color:var(--c-text-secondary); font-variant-numeric:tabular-nums;">${curr.toFixed(1)}%</span>
+                    </div>
+                </div>` : '';
+
             card.innerHTML = `
                 <div style="flex:1; min-width:0; padding-right:8px;">
                     <div style="display:flex; align-items:center; gap:4px; margin-bottom:2px; flex-wrap:nowrap;">
@@ -869,12 +892,12 @@
                         <span style="font-size:9px; font-weight:600; color:#6B7280; background:#E5E7EB; padding:0.5px 4px; border-radius:3px; flex-shrink:0; font-family:monospace;">${item.ticker || '—'}</span>
                         <span style="font-size:12.5px; font-weight:600; color:var(--c-text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.name}</span>
                     </div>
-                    <div style="display:flex; align-items:center; gap:5px;">
+                    <div style="display:flex; align-items:center; gap:5px; margin-bottom:${isW ? '0' : '0'}px;">
                         <span style="font-size:11px; color:var(--c-text-secondary); font-weight:500; font-variant-numeric:tabular-nums;">₩${Math.round(item.evalAmt).toLocaleString()}</span>
-                        ${isW ? '<span style="font-size:9px; font-weight:700; color:#D97706;"><i class="fa-solid fa-triangle-exclamation" style="font-size:8px; margin-right:1px;"></i>리밸런싱</span>' : ''}
                     </div>
+                    ${rebalInfo}
                 </div>
-                <div style="text-align:right; flex-shrink:0; white-space:nowrap; font-size:12.5px; font-variant-numeric:tabular-nums;">
+                <div style="text-align:right; flex-shrink:0; white-space:nowrap; font-size:12.5px; font-variant-numeric:tabular-nums; align-self:flex-start;">
                     <span class="${curCls}">${curSign}${cur.toFixed(2)}%</span>
                     <span class="${cumCls}" style="font-size:10.5px; margin-left:3px; opacity:0.85;">(${cumSign}${cum.toFixed(2)}%)</span>
                 </div>`;
