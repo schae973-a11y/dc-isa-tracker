@@ -833,11 +833,15 @@
             const cur  = parseFloat(item.currentRate    || 0);
             const cum  = parseFloat(item.cumulativeRate || 0);
             
-            // 1) 가로폭 유지를 위해 font-weight가 500으로 설계된 전용 클래스 매핑 (bold 제거 완료)
+            // 1) 텍스트 굵기(Bold)가 제거된 상태를 안정적으로 유지
             const curCls = getRateClass(cur);
             const cumCls = getRateClass(cum);
             const curSign = cur >= 0 ? '+' : '';
             const cumSign = cum >= 0 ? '+' : '';
+
+            // 2) 백엔드 매핑 필드 수정: targetPct -> targetRatio / currentPct -> currentRatio로 수정하여 정상 표기
+            const targetVal  = item.targetRatio  !== undefined ? item.targetRatio  : '0';
+            const currentVal = item.currentRatio !== undefined ? item.currentRatio : '0';
 
             const card = document.createElement('div');
             card.className = 'ticker-card' + (isW ? ' warn' : '');
@@ -850,7 +854,7 @@
                     </div>
                     <div style="display:flex; align-items:center; gap:5px;">
                         <span style="font-size:11px; color:var(--c-text-secondary); font-weight:500; font-variant-numeric:tabular-nums;">₩${Math.round(item.evalAmt).toLocaleString()}</span>
-                        ${isW ? `<span style="font-size:9px; font-weight:700; color:#D97706;"><i class="fa-solid fa-triangle-exclamation" style="font-size:8px; margin-right:1px;"></i>리밸런싱 [목표 ${item.targetPct}% / 현재 ${item.currentPct}%]</span>` : ''}
+                        ${isW ? `<span style="font-size:9px; font-weight:700; color:#D97706;"><i class="fa-solid fa-triangle-exclamation" style="font-size:8px; margin-right:1px;"></i>리밸런싱 [목표 ${targetVal}% / 현재 ${currentVal}%]</span>` : ''}
                     </div>
                 </div>
                 <div style="text-align:right; flex-shrink:0; white-space:nowrap; font-size:12.5px; font-variant-numeric:tabular-nums;">
