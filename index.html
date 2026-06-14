@@ -819,22 +819,13 @@ function renderList(items) {
     const list = document.getElementById('ticker-list');
     list.innerHTML = '';
 
-    // 수익륜 정규화 헬퍼 — 소수(0.13)와 %(13.0) 혼재 방지
-    function normRate(v) {
-        const n = parseFloat(v || 0);
-        return Math.abs(n) < 10 && n !== 0 ? n * 100 : n;
-    }
     let sorted = [...items];
     if (currentSortType === 'default') {
         sorted.sort((a,b) => (a.rebalanceStatus !== '정상' ? 0 : 1) - (b.rebalanceStatus !== '정상' ? 0 : 1));
     } else if (currentSortType === 'current') {
-        sorted.sort((a,b) => isAscending
-            ? normRate(a.currentRate)    - normRate(b.currentRate)
-            : normRate(b.currentRate)    - normRate(a.currentRate));
+        sorted.sort((a,b) => isAscending ? a.currentRate - b.currentRate : b.currentRate - a.currentRate);
     } else {
-        sorted.sort((a,b) => isAscending
-            ? normRate(a.cumulativeRate) - normRate(b.cumulativeRate)
-            : normRate(b.cumulativeRate) - normRate(a.cumulativeRate));
+        sorted.sort((a,b) => isAscending ? a.cumulativeRate - b.cumulativeRate : b.cumulativeRate - a.cumulativeRate);
     }
 
     sorted.forEach(item => {
