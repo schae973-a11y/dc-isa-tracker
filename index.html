@@ -174,6 +174,10 @@
         .up-amt, .up-rate { color: var(--c-up); font-weight: 700; }
         .dn-amt, .dn-rate { color: var(--c-down); font-weight: 700; }
         .neu-amt, .neu-rate { color: var(--c-neutral); }
+        /* 히어로 카드(어두초띹 배경) 전용 색상 */
+        .hero-up  { color: #FF8A80; }
+        .hero-dn  { color: #82B1FF; }
+        .hero-neu { color: rgba(255,255,255,0.7); }
 
         /* 수익률 굵기(Bold) 제거를 위한 클래스 */
         .rate-up  { color: var(--c-up); font-weight: 500; }
@@ -575,8 +579,12 @@
         const profAmt  = Math.round(s.totalProfitAmt  || 0);
         const profRate = parseFloat(s.totalProfitRate || 0);
 
-        document.getElementById('hero-day-perf').innerText = getPerfText(diffAmt, diffRate, true);
-        document.getElementById('hero-cum-perf').innerText = getPerfText(profAmt, profRate, true);
+        const heroDayEl = document.getElementById('hero-day-perf');
+        const heroCumEl = document.getElementById('hero-cum-perf');
+        heroDayEl.innerText = getPerfText(diffAmt, diffRate, true);
+        heroCumEl.innerText = getPerfText(profAmt, profRate, true);
+        heroDayEl.className = 'hero-perf-val ' + (diffAmt > 0 ? 'hero-up' : diffAmt < 0 ? 'hero-dn' : 'hero-neu');
+        heroCumEl.className = 'hero-perf-val ' + (profAmt > 0 ? 'hero-up' : profAmt < 0 ? 'hero-dn' : 'hero-neu');
         
         if (data.items && data.items.length > 0) {
             const itemsCopy = [...data.items];
