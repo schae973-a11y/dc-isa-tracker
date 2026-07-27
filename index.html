@@ -140,7 +140,7 @@
         .hero-perf-item { flex: 1; text-align: center; }
         .hero-perf-item:first-child { border-right: 1px solid rgba(255,255,255,0.15); }
         .hero-perf-label { font-size: 10px; color: rgba(255,255,255,0.6); margin-bottom: 1px; }
-        .hero-perf-val { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+        .hero-perf-val { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: pre-line; line-height: 1.4; }
 
         /* ── Top 종목 카드 ── */
         .perf-row {
@@ -175,9 +175,9 @@
         .dn-amt, .dn-rate { color: var(--c-down); font-weight: 700; }
         .neu-amt, .neu-rate { color: var(--c-neutral); }
         /* 히어로 카드(어두초띹 배경) 전용 색상 */
-        .hero-up  { color: #FF8A80; }
-        .hero-dn  { color: #82B1FF; }
-        .hero-neu { color: rgba(255,255,255,0.7); }
+        .hero-up  { color: #ffffff; }          /* 양수: 순백 — 진한 초록 배경에서 최고 가시성 */
+        .hero-dn  { color: #BBDEFB; }          /* 음수: 밝은 하늘파랑 — 충분한 대비 유지 */
+        .hero-neu { color: rgba(255,255,255,0.65); }
 
         /* 수익률 굵기(Bold) 제거를 위한 클래스 */
         .rate-up  { color: var(--c-up); font-weight: 500; }
@@ -268,7 +268,7 @@
         .ticker-list { padding: 0 0 24px; }
         .ticker-card {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 8px 16px;
+            padding: 11px 16px;
             border-bottom: 1px solid var(--c-divider);
             background: transparent; position: relative;
             transition: background 0.1s;
@@ -581,10 +581,16 @@
 
         const heroDayEl = document.getElementById('hero-day-perf');
         const heroCumEl = document.getElementById('hero-cum-perf');
-        heroDayEl.innerText = getPerfText(diffAmt, diffRate, true);
-        heroCumEl.innerText = getPerfText(profAmt, profRate, true);
+        function heroHtml(amt, rate) {
+            const sign    = amt  > 0 ? '+' : '';
+            const pctSign = rate > 0 ? '+' : '';
+            return `<span style='font-size:15px;font-weight:800;'>${pctSign}${rate.toFixed(2)}%</span>`
+                 + `<br><span style='font-size:12px;opacity:0.82;font-weight:600;'>(${sign}${Math.round(amt).toLocaleString()})</span>`;
+        }
         heroDayEl.className = 'hero-perf-val ' + (diffAmt > 0 ? 'hero-up' : diffAmt < 0 ? 'hero-dn' : 'hero-neu');
         heroCumEl.className = 'hero-perf-val ' + (profAmt > 0 ? 'hero-up' : profAmt < 0 ? 'hero-dn' : 'hero-neu');
+        heroDayEl.innerHTML = heroHtml(diffAmt, diffRate);
+        heroCumEl.innerHTML = heroHtml(profAmt, profRate);
         
         if (data.items && data.items.length > 0) {
             const itemsCopy = [...data.items];
@@ -859,10 +865,10 @@ function renderList(items) {
                 <div style="display:flex; align-items:center; gap:4px; margin-bottom:2px; flex-wrap:nowrap;">
                     <span style="font-size:9px; font-weight:700; color:var(--primary); background:var(--primary-light); padding:0.5px 4px; border-radius:3px; flex-shrink:0;">${item.category}</span>
                     <span style="font-size:9px; font-weight:600; color:#6B7280; background:#E5E7EB; padding:0.5px 4px; border-radius:3px; flex-shrink:0; font-family:monospace;">${item.ticker || '—'}</span>
-                    <span style="font-size:12.5px; font-weight:600; color:var(--c-text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.name}</span>
+                    <span style="font-size:14px; font-weight:600; color:var(--c-text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.name}</span>
                 </div>
                 <div style="display:flex; align-items:center; gap:5px;">
-                    <span style="font-size:11px; color:var(--c-text-secondary); font-weight:500; font-variant-numeric:tabular-nums;">₩${Math.round(item.evalAmt).toLocaleString()}</span>
+                    <span style="font-size:12px; color:var(--c-text-secondary); font-weight:500; font-variant-numeric:tabular-nums;">₩${Math.round(item.evalAmt).toLocaleString()}</span>
                     ${isW ? `<span style="font-size:9px; font-weight:700; color:#D97706;">
                         <i class="fa-solid fa-triangle-exclamation" style="font-size:8px; margin-right:1px;"></i>
                         리밸런싱 [목표 ${targetVal}% / 현재 ${currentVal}%]
@@ -872,7 +878,7 @@ function renderList(items) {
             
             <!-- 오른쪽 수익률 - 정렬 개선 -->
             <div style="text-align:right; flex-shrink:0; width:112px; font-variant-numeric:tabular-nums;">
-                <div class="${curCls}" style="font-weight:700; font-size:13.2px; line-height:1.05;">
+                <div class="${curCls}" style="font-weight:700; font-size:14.5px; line-height:1.05;">
                     ${curSign}${cur.toFixed(2)}%
                 </div>
                 <div class="${cumCls}" style="font-size:10.6px; opacity:0.88; margin-top:1px;">
